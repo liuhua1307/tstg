@@ -1,0 +1,50 @@
+# Git 相关
+.git
+.gitignore
+
+# 文档
+README.md
+*.md
+唐宋电竞陪玩报单平台详细需求文档.md
+
+# 测试相关
+test_api.py
+requirements.txt
+run_tests.sh
+api_test*.json
+api_test.md
+
+# 数据库脚本
+*.sql
+
+# 日志文件
+*.log
+logs/
+
+# 临时文件
+*.tmp
+*.temp
+.DS_Store
+Thumbs.db
+
+# IDE 文件
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# 构建产物
+main
+tangsong-esports
+
+# Docker 相关
+Dockerfile
+.dockerignore
+docker-compose.yml
+
+# OpenAPI 文档
+openapi.yaml
+swagger.json
+
+# Makefile
+Makefile 

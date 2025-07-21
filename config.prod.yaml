@@ -1,0 +1,14 @@
+mode: release
+port: 8000
+
+database:
+  host: ${DB_HOST:localhost}
+  port: ${DB_PORT:3306}
+  username: ${DB_USERNAME:root}
+  password: ${DB_PASSWORD:root123456}
+  database: ${DB_NAME:tstg_shop}
+  charset: utf8mb4
+
+jwt:
+  secret: ${JWT_SECRET:liuhuamengchen300089757}
+  expire: ${JWT_EXPIRE:24} 

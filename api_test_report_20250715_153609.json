@@ -1,0 +1,21 @@
+{
+  "test_summary": {
+    "total_tests": 1,
+    "passed_tests": 1,
+    "failed_tests": 0,
+    "success_rate": "100.00%",
+    "test_time": "2025-07-15T15:36:09.994313"
+  },
+  "test_results": {
+    "login": [
+      {
+        "endpoint": "/login",
+        "method": "POST",
+        "status_code": 200,
+        "success": true,
+        "response_time": "0.072s",
+        "error_message": null
+      }
+    ]
+  }
+}

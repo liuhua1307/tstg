@@ -1,0 +1,14 @@
+mode: debug
+port: 8000
+s
+database:
+  host: 154.219.110.51
+  port: 3306
+  username: tsshop
+  password: "KEdG76bSGRhdWyhz"
+  database: tsshop
+  charset: utf8mb4
+
+jwt:
+  secret: "liuhuamengchen300089757"
+  expire: 24

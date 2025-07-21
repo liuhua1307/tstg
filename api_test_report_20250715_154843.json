@@ -1,0 +1,257 @@
+{
+  "test_summary": {
+    "total_tests": 29,
+    "passed_tests": 29,
+    "failed_tests": 0,
+    "success_rate": "100.00%",
+    "test_time": "2025-07-15T15:48:43.356842"
+  },
+  "test_results": {
+    "login": [
+      {
+        "endpoint": "/login",
+        "method": "POST",
+        "status_code": 200,
+        "success": true,
+        "response_time": "0.087s",
+        "error_message": null
+      }
+    ],
+    "members": [
+      {
+        "endpoint": "/members",
+        "method": "GET",
+        "status_code": 200,
+        "success": true,
+        "response_time": "0.009s",
+        "error_message": null
+      },
+      {
+        "endpoint": "/members",
+        "method": "GET",
+        "status_code": 200,
+        "success": true,
+        "response_time": "0.006s",
+        "error_message": null
+      },
+      {
+        "endpoint": "/members",
+        "method": "POST",
+        "status_code": 200,
+        "success": true,
+        "response_time": "0.062s",
+        "error_message": null
+      },
+      {
+        "endpoint": "/members/2",
+        "method": "GET",
+        "status_code": 200,
+        "success": true,
+        "response_time": "0.006s",
+        "error_message": null
+      },
+      {
+        "endpoint": "/members/2",
+        "method": "PUT",
+        "status_code": 200,
+        "success": true,
+        "response_time": "0.001s",
+        "error_message": null
+      },
+      {
+        "endpoint": "/members/2",
+        "method": "DELETE",
+        "status_code": 200,
+        "success": true,
+        "response_time": "0.009s",
+        "error_message": null
+      }
+    ],
+    "customers": [
+      {
+        "endpoint": "/customers",
+        "method": "GET",
+        "status_code": 200,
+        "success": true,
+        "response_time": "0.002s",
+        "error_message": null
+      },
+      {
+        "endpoint": "/customers",
+        "method": "POST",
+        "status_code": 200,
+        "success": true,
+        "response_time": "0.013s",
+        "error_message": null
+      },
+      {
+        "endpoint": "/customers/1",
+        "method": "GET",
+        "status_code": 200,
+        "success": true,
+        "response_time": "0.003s",
+        "error_message": null
+      },
+      {
+        "endpoint": "/customers/1",
+        "method": "PUT",
+        "status_code": 200,
+        "success": true,
+        "response_time": "0.015s",
+        "error_message": null
+      },
+      {
+        "endpoint": "/customers/1/recharge",
+        "method": "POST",
+        "status_code": 200,
+        "success": true,
+        "response_time": "0.001s",
+        "error_message": null
+      },
+      {
+        "endpoint": "/customers/1/recharge-history",
+        "method": "GET",
+        "status_code": 200,
+        "success": true,
+        "response_time": "0.004s",
+        "error_message": null
+      },
+      {
+        "endpoint": "/customers/1",
+        "method": "DELETE",
+        "status_code": 200,
+        "success": true,
+        "response_time": "0.006s",
+        "error_message": null
+      }
+    ],
+    "order-categories": [
+      {
+        "endpoint": "/order-categories",
+        "method": "GET",
+        "status_code": 200,
+        "success": true,
+        "response_time": "0.002s",
+        "error_message": null
+      },
+      {
+        "endpoint": "/order-categories",
+        "method": "POST",
+        "status_code": 200,
+        "success": true,
+        "response_time": "0.005s",
+        "error_message": null
+      },
+      {
+        "endpoint": "/order-categories/6",
+        "method": "PUT",
+        "status_code": 200,
+        "success": true,
+        "response_time": "0.052s",
+        "error_message": null
+      },
+      {
+        "endpoint": "/order-categories/6",
+        "method": "DELETE",
+        "status_code": 200,
+        "success": true,
+        "response_time": "0.005s",
+        "error_message": null
+      }
+    ],
+    "orders": [
+      {
+        "endpoint": "/orders",
+        "method": "GET",
+        "status_code": 200,
+        "success": true,
+        "response_time": "0.002s",
+        "error_message": null
+      },
+      {
+        "endpoint": "/orders",
+        "method": "POST",
+        "status_code": 200,
+        "success": true,
+        "response_time": "0.001s",
+        "error_message": null
+      },
+      {
+        "endpoint": "/orders",
+        "method": "GET",
+        "status_code": 200,
+        "success": true,
+        "response_time": "0.002s",
+        "error_message": null
+      },
+      {
+        "endpoint": "/orders",
+        "method": "GET",
+        "status_code": 200,
+        "success": true,
+        "response_time": "0.002s",
+        "error_message": null
+      }
+    ],
+    "configs": [
+      {
+        "endpoint": "/configs",
+        "method": "GET",
+        "status_code": 200,
+        "success": true,
+        "response_time": "0.001s",
+        "error_message": null
+      },
+      {
+        "endpoint": "/configs/auto_settlement_enabled",
+        "method": "PUT",
+        "status_code": 200,
+        "success": true,
+        "response_time": "0.005s",
+        "error_message": null
+      },
+      {
+        "endpoint": "/configs",
+        "method": "GET",
+        "status_code": 200,
+        "success": true,
+        "response_time": "0.009s",
+        "error_message": null
+      }
+    ],
+    "logs": [
+      {
+        "endpoint": "/logs",
+        "method": "GET",
+        "status_code": 200,
+        "success": true,
+        "response_time": "0.002s",
+        "error_message": null
+      },
+      {
+        "endpoint": "/logs",
+        "method": "GET",
+        "status_code": 200,
+        "success": true,
+        "response_time": "0.002s",
+        "error_message": null
+      },
+      {
+        "endpoint": "/logs",
+        "method": "GET",
+        "status_code": 200,
+        "success": true,
+        "response_time": "0.002s",
+        "error_message": null
+      },
+      {
+        "endpoint": "/logs",
+        "method": "GET",
+        "status_code": 200,
+        "success": true,
+        "response_time": "0.002s",
+        "error_message": null
+      }
+    ]
+  }
+}

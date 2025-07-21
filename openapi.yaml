@@ -1,0 +1,1706 @@
+openapi: 3.0.3
+info:
+  title: 唐宋电竞陪玩报单平台API
+  description: 唐宋电竞陪玩报单平台后端API文档
+  version: 1.0.0
+  contact:
+    name: 唐宋电竞技术团队
+servers:
+  - url: http://localhost:8080/api/v1
+    description: 开发环境
+  - url: https://api.tangsong-esports.com/api/v1
+    description: 生产环境
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    # 通用响应结构
+    ApiResponse:
+      type: object
+      properties:
+        code:
+          type: integer
+          example: 200
+        message:
+          type: string
+          example: "操作成功"
+        data:
+          type: object
+
+    PageResponse:
+      type: object
+      properties:
+        list:
+          type: array
+          items:
+            type: object
+        total:
+          type: integer
+          example: 100
+        page:
+          type: integer
+          example: 1
+        page_size:
+          type: integer
+          example: 10
+
+    # 登录相关
+    LoginRequest:
+      type: object
+      required:
+        - account
+        - password
+      properties:
+        account:
+          type: string
+          example: "admin"
+        password:
+          type: string
+          example: "123456"
+
+    LoginResponse:
+      type: object
+      properties:
+        token:
+          type: string
+          example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+        expires_in:
+          type: integer
+          example: 86400
+        user:
+          $ref: '#/components/schemas/Member'
+
+    RefreshTokenRequest:
+      type: object
+      required:
+        - refresh_token
+      properties:
+        refresh_token:
+          type: string
+          example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+
+    RefreshTokenResponse:
+      type: object
+      properties:
+        access_token:
+          type: string
+          example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+        refresh_token:
+          type: string
+          example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+        expires_in:
+          type: integer
+          example: 86400
+        user:
+          $ref: '#/components/schemas/Member'
+
+    # 成员相关
+    Member:
+      type: object
+      properties:
+        member_id:
+          type: integer
+          example: 1
+        account:
+          type: string
+          example: "admin"
+        name:
+          type: string
+          example: "系统管理员"
+        phone_number:
+          type: string
+          example: "13800138000"
+        department:
+          type: string
+          example: "管理部"
+        user_role:
+          type: string
+          example: "超级管理员"
+        status:
+          type: string
+          enum: ["正常", "禁用"]
+          example: "正常"
+        is_enabled:
+          type: boolean
+          example: true
+        notes:
+          type: string
+          example: "系统管理员账号"
+        last_login_at:
+          type: string
+          format: date-time
+        last_login_ip:
+          type: string
+          example: "127.0.0.1"
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+        permissions:
+          $ref: '#/components/schemas/MemberPermissions'
+        financial_settings:
+          $ref: '#/components/schemas/MemberFinancialSettings'
+
+    MemberPermissions:
+      type: object
+      properties:
+        permission_id:
+          type: integer
+        member_id:
+          type: integer
+        is_auditor:
+          type: boolean
+          example: true
+        can_report:
+          type: boolean
+          example: true
+        can_accept_order:
+          type: boolean
+          example: true
+
+    MemberFinancialSettings:
+      type: object
+      properties:
+        setting_id:
+          type: integer
+        member_id:
+          type: integer
+        commission_rate:
+          type: number
+          format: decimal
+          example: 0.15
+
+    MemberCreateRequest:
+      type: object
+      required:
+        - account
+        - password
+        - name
+        - user_role
+      properties:
+        account:
+          type: string
+          example: "test001"
+        password:
+          type: string
+          example: "123456"
+        name:
+          type: string
+          example: "测试陪玩"
+        phone_number:
+          type: string
+          example: "13800138000"
+        department:
+          type: string
+          example: "陪玩部"
+        user_role:
+          type: string
+          example: "陪玩"
+        notes:
+          type: string
+          example: "测试账号"
+        is_auditor:
+          type: boolean
+          default: false
+        can_report:
+          type: boolean
+          default: true
+        can_accept_order:
+          type: boolean
+          default: true
+        commission_rate:
+          type: number
+          format: decimal
+          example: 0.15
+        creator_id:
+          type: integer
+          example: 1
+        assignee_id:
+          type: integer
+          example: 1
+
+    # 客户相关
+    Customer:
+      type: object
+      properties:
+        customer_id:
+          type: integer
+          example: 1
+        account:
+          type: string
+          example: "customer001"
+        customer_name:
+          type: string
+          example: "测试客户"
+        contact_method:
+          type: string
+          example: "微信: test_wx"
+        phone_number:
+          type: string
+          example: "13900139000"
+        member_birthday:
+          type: string
+          format: date
+          example: "1990-01-01"
+        room_code:
+          type: string
+          example: "ROOM001"
+        additional_info1:
+          type: string
+        additional_info2:
+          type: string
+        additional_info3:
+          type: string
+        notes:
+          type: string
+          example: "VIP客户"
+        status:
+          type: string
+          enum: ["正常", "禁用", "过期"]
+          example: "正常"
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+        financial_info:
+          $ref: '#/components/schemas/CustomerFinancialInfo'
+        preferences:
+          $ref: '#/components/schemas/CustomerPreferences'
+
+    CustomerFinancialInfo:
+      type: object
+      properties:
+        customer_id:
+          type: integer
+        initial_real_charge:
+          type: number
+          format: decimal
+          example: 1000.00
+        total_consumption:
+          type: number
+          format: decimal
+          example: 500.00
+        total_real_charge:
+          type: number
+          format: decimal
+          example: 1500.00
+        current_balance:
+          type: number
+          format: decimal
+          example: 1000.00
+
+    CustomerPreferences:
+      type: object
+      properties:
+        customer_id:
+          type: integer
+        exclusive_discount_type:
+          type: string
+          example: "固定折扣"
+        platform_boss:
+          type: string
+          example: "平台老板A"
+        exclusive_cs:
+          type: string
+          example: "客服小王"
+
+    CustomerCreateRequest:
+      type: object
+      required:
+        - account
+        - customer_name
+      properties:
+        account:
+          type: string
+          example: "customer001"
+        customer_name:
+          type: string
+          example: "测试客户"
+        contact_method:
+          type: string
+          example: "微信: test_wx"
+        phone_number:
+          type: string
+          example: "13900139000"
+        member_birthday:
+          type: string
+          format: date
+          example: "1990-01-01"
+        room_code:
+          type: string
+          example: "ROOM001"
+        additional_info1:
+          type: string
+        additional_info2:
+          type: string
+        additional_info3:
+          type: string
+        notes:
+          type: string
+          example: "VIP客户"
+        initial_real_charge:
+          type: number
+          format: decimal
+          example: 1000.00
+        exclusive_discount_type:
+          type: string
+          example: "固定折扣"
+        platform_boss:
+          type: string
+          example: "平台老板A"
+        exclusive_cs:
+          type: string
+          example: "客服小王"
+
+    CustomerRechargeRequest:
+      type: object
+      required:
+        - real_charge_amount
+        - payment_method
+      properties:
+        real_charge_amount:
+          type: number
+          format: decimal
+          example: 500.00
+        gift_amount:
+          type: number
+          format: decimal
+          example: 50.00
+        payment_method:
+          type: string
+          enum: ["微信", "支付宝", "银行转账", "平台", "内部", "其他"]
+          example: "微信"
+        transaction_id:
+          type: string
+          example: "WX20250715001"
+        notes:
+          type: string
+          example: "充值测试"
+
+    # 订单类别相关
+    OrderCategory:
+      type: object
+      properties:
+        category_id:
+          type: integer
+          example: 1
+        category_name:
+          type: string
+          example: "英雄联盟"
+        sort_order:
+          type: integer
+          example: 10
+        is_active:
+          type: boolean
+          example: true
+        usage_scenario:
+          type: string
+          example: "排位、娱乐"
+        commission_rate:
+          type: number
+          format: decimal
+          example: 0.20
+        is_participating:
+          type: boolean
+          example: true
+        is_required:
+          type: boolean
+          example: false
+        is_accelerated:
+          type: boolean
+          example: false
+        additional_info:
+          type: string
+          example: "热门游戏"
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    OrderCategoryCreateRequest:
+      type: object
+      required:
+        - category_name
+      properties:
+        category_name:
+          type: string
+          example: "王者荣耀"
+        sort_order:
+          type: integer
+          example: 20
+        usage_scenario:
+          type: string
+          example: "排位、巅峰赛"
+        commission_rate:
+          type: number
+          format: decimal
+          example: 0.20
+        is_participating:
+          type: boolean
+          default: true
+        is_required:
+          type: boolean
+          default: false
+        is_accelerated:
+          type: boolean
+          default: false
+        additional_info:
+          type: string
+          example: "热门游戏"
+
+    # 订单相关
+    PlaymateOrder:
+      type: object
+      properties:
+        order_id:
+          type: integer
+          example: 1
+        reporter_id:
+          type: integer
+          example: 1
+        customer_id:
+          type: integer
+          example: 1
+        order_category_id:
+          type: integer
+          example: 1
+        game:
+          type: string
+          example: "英雄联盟"
+        project_category:
+          type: string
+          example: "排位赛"
+        playmate_level:
+          type: string
+          example: "黄金"
+        start_time:
+          type: string
+          format: date-time
+          example: "2025-07-15T20:00:00Z"
+        end_time:
+          type: string
+          format: date-time
+          example: "2025-07-15T22:00:00Z"
+        duration_hours:
+          type: number
+          format: decimal
+          example: 2.0
+        is_teammate:
+          type: boolean
+          example: false
+        mode:
+          type: string
+          example: "单排"
+        service_additional_info:
+          type: string
+          example: "要求有语音"
+        internal_notes:
+          type: string
+          example: "客户比较挑剔"
+        order_notes:
+          type: string
+          example: "上分专用"
+        platform_owner:
+          type: string
+          example: "平台老板A"
+        report_time:
+          type: string
+          format: date-time
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+        reporter:
+          $ref: '#/components/schemas/Member'
+        customer:
+          $ref: '#/components/schemas/Customer'
+        category:
+          $ref: '#/components/schemas/OrderCategory'
+        pricing:
+          $ref: '#/components/schemas/OrderPricing'
+        workflow:
+          $ref: '#/components/schemas/OrderWorkflow'
+        payment_info:
+          $ref: '#/components/schemas/OrderPaymentInfo'
+
+    OrderPricing:
+      type: object
+      properties:
+        pricing_id:
+          type: integer
+        order_id:
+          type: integer
+        unit_price:
+          type: number
+          format: decimal
+          example: 50.00
+        total_price:
+          type: number
+          format: decimal
+          example: 100.00
+        discount_amount:
+          type: number
+          format: decimal
+          example: 10.00
+        final_price:
+          type: number
+          format: decimal
+          example: 90.00
+        exclusive_discount:
+          type: boolean
+          example: false
+
+    OrderWorkflow:
+      type: object
+      properties:
+        workflow_id:
+          type: integer
+        order_id:
+          type: integer
+        order_status:
+          type: string
+          enum: ["待处理", "已确认", "驳回", "已结算", "已完成", "已退回"]
+          example: "待处理"
+        settlement_status:
+          type: string
+          enum: ["未结算", "已结算"]
+          example: "未结算"
+        approver_id:
+          type: integer
+        approval_time:
+          type: string
+          format: date-time
+        rejection_reason:
+          type: string
+        settlement_time:
+          type: string
+          format: date-time
+
+    OrderPaymentInfo:
+      type: object
+      properties:
+        payment_id:
+          type: integer
+        order_id:
+          type: integer
+        payment_amount:
+          type: number
+          format: decimal
+          example: 90.00
+        payment_status:
+          type: string
+          enum: ["待付款", "已付款", "已退款"]
+          example: "待付款"
+        payment_method:
+          type: string
+        transaction_id:
+          type: string
+        payment_time:
+          type: string
+          format: date-time
+
+    OrderCreateRequest:
+      type: object
+      required:
+        - customer_id
+        - order_category_id
+        - game
+        - start_time
+        - end_time
+        - duration_hours
+        - unit_price
+      properties:
+        customer_id:
+          type: integer
+          example: 1
+        order_category_id:
+          type: integer
+          example: 1
+        game:
+          type: string
+          example: "英雄联盟"
+        project_category:
+          type: string
+          example: "排位赛"
+        playmate_level:
+          type: string
+          example: "黄金"
+        start_time:
+          type: string
+          format: date-time
+          example: "2025-07-15 20:00:00"
+        end_time:
+          type: string
+          format: date-time
+          example: "2025-07-15 22:00:00"
+        duration_hours:
+          type: number
+          format: decimal
+          example: 2.0
+        unit_price:
+          type: number
+          format: decimal
+          example: 50.00
+        is_teammate:
+          type: boolean
+          default: false
+        mode:
+          type: string
+          example: "单排"
+        service_additional_info:
+          type: string
+          example: "要求有语音"
+        internal_notes:
+          type: string
+          example: "客户比较挑剔"
+        order_notes:
+          type: string
+          example: "上分专用"
+        platform_owner:
+          type: string
+          example: "平台老板A"
+        exclusive_discount:
+          type: boolean
+          default: false
+
+    OrderUpdateStatusRequest:
+      type: object
+      required:
+        - order_status
+      properties:
+        order_status:
+          type: string
+          enum: ["待处理", "已确认", "驳回", "已结算", "已完成", "已退回"]
+          example: "已确认"
+        rejection_reason:
+          type: string
+          example: "信息不完整，请补充客户需求"
+
+    # 系统配置相关
+    SystemConfig:
+      type: object
+      properties:
+        config_id:
+          type: integer
+        config_key:
+          type: string
+          example: "default_commission_rate"
+        config_value:
+          type: string
+          example: "0.15"
+        config_description:
+          type: string
+          example: "默认提成比例"
+        is_active:
+          type: boolean
+          example: true
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    # 操作日志相关
+    OperationLog:
+      type: object
+      properties:
+        log_id:
+          type: integer
+        operator_id:
+          type: integer
+        operation_type:
+          type: string
+          example: "创建"
+        operation_module:
+          type: string
+          example: "订单管理"
+        operation_description:
+          type: string
+          example: "创建订单"
+        target_id:
+          type: string
+          example: "1"
+        target_type:
+          type: string
+          example: "订单"
+        ip_address:
+          type: string
+          example: "127.0.0.1"
+        user_agent:
+          type: string
+        operation_time:
+          type: string
+          format: date-time
+        operator:
+          $ref: '#/components/schemas/Member'
+
+paths:
+  # 认证相关
+  /login:
+    post:
+      tags:
+        - 认证
+      summary: 用户登录
+      description: 使用账号密码登录系统
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: 登录成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/RefreshTokenResponse'
+  /refresh:
+    post:
+      tags:
+        - 认证
+      summary: 刷新访问令牌
+      description: 使用刷新令牌获取新的访问令牌和刷新令牌
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RefreshTokenRequest'
+      responses:
+        '200':
+          description: 刷新成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/RefreshTokenResponse'
+        '401':
+          description: 刷新令牌无效或已过期
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      code:
+                        type: integer
+                        example: 401
+                      message:
+                        type: string
+                        example: "刷新令牌无效或已过期"
+        '403':
+          description: 账户已被禁用或未启用
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      code:
+                        type: integer
+                        example: 403
+                      message:
+                        type: string
+                        example: "账户已被禁用"
+
+  # 内部成员管理
+  /members:
+    get:
+      tags:
+        - 成员管理
+      summary: 获取成员列表
+      description: 分页获取内部成员列表，支持搜索和筛选
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          description: 页码
+          schema:
+            type: integer
+            default: 1
+        - name: page_size
+          in: query
+          description: 每页数量
+          schema:
+            type: integer
+            default: 10
+        - name: account
+          in: query
+          description: 账号搜索
+          schema:
+            type: string
+        - name: name
+          in: query
+          description: 姓名搜索
+          schema:
+            type: string
+        - name: department
+          in: query
+          description: 部门筛选
+          schema:
+            type: string
+        - name: status
+          in: query
+          description: 状态筛选
+          schema:
+            type: string
+            enum: ["正常", "禁用"]
+      responses:
+        '200':
+          description: 查询成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/PageResponse'
+
+    post:
+      tags:
+        - 成员管理
+      summary: 创建成员
+      description: 创建新的内部成员
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MemberCreateRequest'
+      responses:
+        '200':
+          description: 创建成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/Member'
+
+  /members/{id}:
+    get:
+      tags:
+        - 成员管理
+      summary: 获取成员详情
+      description: 根据ID获取内部成员详细信息
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: 成员ID
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: 查询成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/Member'
+
+    put:
+      tags:
+        - 成员管理
+      summary: 更新成员
+      description: 更新内部成员信息
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: 成员ID
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MemberCreateRequest'
+      responses:
+        '200':
+          description: 更新成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/Member'
+
+    delete:
+      tags:
+        - 成员管理
+      summary: 删除成员
+      description: 软删除内部成员
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: 成员ID
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: 删除成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+
+  # 客户管理
+  /customers:
+    get:
+      tags:
+        - 客户管理
+      summary: 获取客户列表
+      description: 分页获取客户列表，支持搜索和筛选
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          description: 页码
+          schema:
+            type: integer
+            default: 1
+        - name: page_size
+          in: query
+          description: 每页数量
+          schema:
+            type: integer
+            default: 10
+        - name: account
+          in: query
+          description: 账号搜索
+          schema:
+            type: string
+        - name: customer_name
+          in: query
+          description: 客户名称搜索
+          schema:
+            type: string
+        - name: phone_number
+          in: query
+          description: 手机号搜索
+          schema:
+            type: string
+        - name: status
+          in: query
+          description: 状态筛选
+          schema:
+            type: string
+            enum: ["正常", "禁用", "过期"]
+      responses:
+        '200':
+          description: 查询成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/PageResponse'
+
+    post:
+      tags:
+        - 客户管理
+      summary: 创建客户
+      description: 创建新的客户
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CustomerCreateRequest'
+      responses:
+        '200':
+          description: 创建成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/Customer'
+
+  /customers/{id}:
+    get:
+      tags:
+        - 客户管理
+      summary: 获取客户详情
+      description: 根据ID获取客户详细信息
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: 客户ID
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: 查询成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/Customer'
+
+    put:
+      tags:
+        - 客户管理
+      summary: 更新客户
+      description: 更新客户信息
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: 客户ID
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CustomerCreateRequest'
+      responses:
+        '200':
+          description: 更新成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/Customer'
+
+    delete:
+      tags:
+        - 客户管理
+      summary: 删除客户
+      description: 软删除客户
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: 客户ID
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: 删除成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+
+  /customers/{id}/recharge:
+    post:
+      tags:
+        - 客户管理
+      summary: 客户充值
+      description: 为客户账户充值
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: 客户ID
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CustomerRechargeRequest'
+      responses:
+        '200':
+          description: 充值成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+
+  /customers/{id}/recharge-history:
+    get:
+      tags:
+        - 客户管理
+      summary: 获取客户充值记录
+      description: 获取指定客户的充值记录
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: 客户ID
+          schema:
+            type: integer
+        - name: page
+          in: query
+          description: 页码
+          schema:
+            type: integer
+            default: 1
+        - name: page_size
+          in: query
+          description: 每页数量
+          schema:
+            type: integer
+            default: 10
+      responses:
+        '200':
+          description: 查询成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/PageResponse'
+
+  # 订单类别管理
+  /order-categories:
+    get:
+      tags:
+        - 订单类别管理
+      summary: 获取订单类别列表
+      description: 获取所有订单类别，支持筛选
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: is_active
+          in: query
+          description: 是否启用
+          schema:
+            type: boolean
+      responses:
+        '200':
+          description: 查询成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/OrderCategory'
+
+    post:
+      tags:
+        - 订单类别管理
+      summary: 创建订单类别
+      description: 创建新的订单类别
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OrderCategoryCreateRequest'
+      responses:
+        '200':
+          description: 创建成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/OrderCategory'
+
+  /order-categories/{id}:
+    put:
+      tags:
+        - 订单类别管理
+      summary: 更新订单类别
+      description: 更新订单类别信息
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: 类别ID
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OrderCategoryCreateRequest'
+      responses:
+        '200':
+          description: 更新成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/OrderCategory'
+
+    delete:
+      tags:
+        - 订单类别管理
+      summary: 删除订单类别
+      description: 软删除订单类别
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: 类别ID
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: 删除成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+
+  # 陪玩订单管理
+  /orders:
+    get:
+      tags:
+        - 订单管理
+      summary: 获取订单列表
+      description: 分页获取陪玩订单列表，支持搜索和筛选
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          description: 页码
+          schema:
+            type: integer
+            default: 1
+        - name: page_size
+          in: query
+          description: 每页数量
+          schema:
+            type: integer
+            default: 10
+        - name: reporter_id
+          in: query
+          description: 报单人ID
+          schema:
+            type: integer
+        - name: customer_id
+          in: query
+          description: 客户ID
+          schema:
+            type: integer
+        - name: game
+          in: query
+          description: 游戏名称
+          schema:
+            type: string
+        - name: order_status
+          in: query
+          description: 订单状态
+          schema:
+            type: string
+            enum: ["待处理", "已确认", "驳回", "已结算", "已完成", "已退回"]
+        - name: start_date
+          in: query
+          description: 开始日期(YYYY-MM-DD)
+          schema:
+            type: string
+            format: date
+        - name: end_date
+          in: query
+          description: 结束日期(YYYY-MM-DD)
+          schema:
+            type: string
+            format: date
+      responses:
+        '200':
+          description: 查询成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/PageResponse'
+
+    post:
+      tags:
+        - 订单管理
+      summary: 创建订单
+      description: 创建新的陪玩订单
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OrderCreateRequest'
+      responses:
+        '200':
+          description: 创建成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/PlaymateOrder'
+
+  /orders/{id}:
+    get:
+      tags:
+        - 订单管理
+      summary: 获取订单详情
+      description: 根据ID获取陪玩订单详细信息
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: 订单ID
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: 查询成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/PlaymateOrder'
+
+    put:
+      tags:
+        - 订单管理
+      summary: 更新订单
+      description: 更新陪玩订单信息
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: 订单ID
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OrderCreateRequest'
+      responses:
+        '200':
+          description: 更新成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/PlaymateOrder'
+
+  /orders/{id}/status:
+    put:
+      tags:
+        - 订单管理
+      summary: 更新订单状态
+      description: 更新陪玩订单状态
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: 订单ID
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OrderUpdateStatusRequest'
+      responses:
+        '200':
+          description: 更新成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/OrderWorkflow'
+
+  /orders/{id}/images:
+    post:
+      tags:
+        - 订单管理
+      summary: 上传订单图片
+      description: 为订单上传图片
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: 订单ID
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                image_type:
+                  type: string
+                  description: 图片类型
+                notes:
+                  type: string
+                  description: 图片备注
+                file:
+                  type: string
+                  format: binary
+                  description: 图片文件
+      responses:
+        '200':
+          description: 上传成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+
+  # 系统配置
+  /configs:
+    get:
+      tags:
+        - 系统管理
+      summary: 获取系统配置
+      description: 获取所有系统配置
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: is_active
+          in: query
+          description: 是否启用
+          schema:
+            type: boolean
+      responses:
+        '200':
+          description: 查询成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/SystemConfig'
+
+  /configs/{key}:
+    put:
+      tags:
+        - 系统管理
+      summary: 更新系统配置
+      description: 更新指定配置项的值
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: key
+          in: path
+          required: true
+          description: 配置键
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                config_value:
+                  type: string
+                  example: "0.18"
+                config_description:
+                  type: string
+                  example: "默认提成比例(已调整)"
+                is_active:
+                  type: boolean
+                  example: true
+      responses:
+        '200':
+          description: 更新成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/SystemConfig'
+
+  # 操作日志
+  /logs:
+    get:
+      tags:
+        - 系统管理
+      summary: 获取操作日志
+      description: 分页获取操作日志，支持筛选
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          description: 页码
+          schema:
+            type: integer
+            default: 1
+        - name: page_size
+          in: query
+          description: 每页数量
+          schema:
+            type: integer
+            default: 10
+        - name: operator_id
+          in: query
+          description: 操作人ID
+          schema:
+            type: integer
+        - name: operation_type
+          in: query
+          description: 操作类型
+          schema:
+            type: string
+        - name: operation_module
+          in: query
+          description: 操作模块
+          schema:
+            type: string
+        - name: start_date
+          in: query
+          description: 开始日期(YYYY-MM-DD)
+          schema:
+            type: string
+            format: date
+        - name: end_date
+          in: query
+          description: 结束日期(YYYY-MM-DD)
+          schema:
+            type: string
+            format: date
+      responses:
+        '200':
+          description: 查询成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/PageResponse' 
