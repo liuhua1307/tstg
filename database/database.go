@@ -57,6 +57,7 @@ func InitDB() {
 		&models.MemberFinancialSettings{},
 		&models.MemberRelationships{},
 		&models.MemberLoginLogs{},
+		&models.Customer{},
 		&models.CustomerFinancialInfo{},
 		&models.CustomerPreferences{},
 		&models.CustomerRechargeHistory{},
@@ -73,6 +74,7 @@ func InitDB() {
 		&models.OrderWorkflow{},
 		&models.OrderPaymentInfo{},
 		&models.OrderImages{},
+		&models.OrderApprovalHistory{},
 	)
 	if err != nil {
 		log.Fatal("订单表迁移失败:", err)

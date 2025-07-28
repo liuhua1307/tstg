@@ -9,10 +9,10 @@ import (
 // InternalMember 内部成员基本信息表
 type InternalMember struct {
 	MemberID     uint           `json:"member_id" gorm:"primaryKey;column:member_id"`
-	Account      string         `json:"account" gorm:"uniqueIndex;size:50;not null;comment:登录账号"`
+	Account      string         `json:"account" gorm:"size:50;not null;comment:登录账号"`
 	PasswordHash string         `json:"-" gorm:"size:255;not null;comment:密码哈希值"`
 	Name         string         `json:"name" gorm:"size:50;not null;comment:姓名"`
-	PhoneNumber  string         `json:"phone_number" gorm:"uniqueIndex;size:20;comment:手机号码"`
+	PhoneNumber  string         `json:"phone_number" gorm:"size:20;comment:手机号码"`
 	Department   string         `json:"department" gorm:"size:50;comment:所属部门"`
 	UserRole     string         `json:"user_role" gorm:"size:50;not null;comment:用户角色"`
 	Status       string         `json:"status" gorm:"type:enum('正常','禁用');default:'正常';comment:账户状态"`
@@ -123,8 +123,8 @@ type LoginResponse struct {
 }
 
 type MemberCreateRequest struct {
-	Account        string  `json:"account" binding:"required"`
-	Password       string  `json:"password" binding:"required"`
+	Account        string  `json:"account" `
+	Password       string  `json:"password" `
 	Name           string  `json:"name" binding:"required"`
 	PhoneNumber    string  `json:"phone_number"`
 	Department     string  `json:"department"`
@@ -132,8 +132,8 @@ type MemberCreateRequest struct {
 	Notes          string  `json:"notes"`
 	IsAuditor      bool    `json:"is_auditor"`
 	CanReport      bool    `json:"can_report"`
-	CanAcceptOrder bool    `json:"can_accept_order"`  // 修复：与权限模型字段一致
-	CommissionRate float64 `json:"commission_rate"`   // 修复：与财务设置模型字段一致
+	CanAcceptOrder bool    `json:"can_accept_order"` // 修复：与权限模型字段一致
+	CommissionRate float64 `json:"commission_rate"`  // 修复：与财务设置模型字段一致
 	CreatorID      *uint   `json:"creator_id"`
 	AssigneeID     *uint   `json:"assignee_id"`
 }

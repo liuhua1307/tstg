@@ -5,8 +5,10 @@ import (
 	"tangsong-esports/database"
 	"tangsong-esports/models"
 	"tangsong-esports/utils"
+	"time"
 
 	"github.com/gin-gonic/gin"
+	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 )
 
@@ -111,19 +113,41 @@ func CreateCustomer(c *gin.Context) {
 	// 开启事务
 	tx := database.DB.Begin()
 
+	// 处理密码
+	var passwordHash string
+	var passwordStatus string
+	if req.Password != "" {
+		// 如果提供了密码，则进行哈希
+		hashedPassword, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
+		if err != nil {
+			tx.Rollback()
+			utils.Error(c, "密码加密失败")
+			return
+		}
+		passwordHash = string(hashedPassword)
+		passwordStatus = "set"
+	} else {
+		// 如果没有提供密码，则设置为未设置状态
+		passwordHash = ""
+		passwordStatus = "unset"
+	}
+
 	// 创建客户基本信息
 	customer := models.Customer{
 		Account:         req.Account,
+		PasswordHash:    passwordHash,
 		CustomerName:    req.CustomerName,
 		ContactMethod:   req.ContactMethod,
 		PhoneNumber:     req.PhoneNumber,
-		MemberBirthday:  req.MemberBirthday,  // 直接使用 *time.Time 类型
+		MemberBirthday:  req.MemberBirthday, // 直接使用 *time.Time 类型
 		RoomCode:        req.RoomCode,
 		AdditionalInfo1: req.AdditionalInfo1,
 		AdditionalInfo2: req.AdditionalInfo2,
 		AdditionalInfo3: req.AdditionalInfo3,
 		Notes:           req.Notes,
 		Status:          "正常",
+		AccountType:     "admin_created",
+		PasswordStatus:  passwordStatus,
 	}
 
 	if err := tx.Create(&customer).Error; err != nil {
@@ -147,10 +171,11 @@ func CreateCustomer(c *gin.Context) {
 
 	// 创建偏好设置
 	preferences := models.CustomerPreferences{
-		CustomerID:            customer.CustomerID,
-		ExclusiveDiscountType: req.ExclusiveDiscountType,
-		PlatformBoss:          req.PlatformBoss,
-		ExclusiveCS:           req.ExclusiveCS,
+		CustomerID:             customer.CustomerID,
+		ExclusiveDiscountType:  req.ExclusiveDiscountType,
+		ExclusiveDiscountRatio: req.ExclusiveDiscountRatio,
+		PlatformBoss:           req.PlatformBoss,
+		ExclusiveCS:            req.ExclusiveCS,
 	}
 	if err := tx.Create(&preferences).Error; err != nil {
 		tx.Rollback()
@@ -210,7 +235,7 @@ func UpdateCustomer(c *gin.Context) {
 	customer.CustomerName = req.CustomerName
 	customer.ContactMethod = req.ContactMethod
 	customer.PhoneNumber = req.PhoneNumber
-	customer.MemberBirthday = req.MemberBirthday  // 直接使用 *time.Time 类型
+	customer.MemberBirthday = req.MemberBirthday // 直接使用 *time.Time 类型
 	customer.RoomCode = req.RoomCode
 	customer.AdditionalInfo1 = req.AdditionalInfo1
 	customer.AdditionalInfo2 = req.AdditionalInfo2
@@ -228,10 +253,11 @@ func UpdateCustomer(c *gin.Context) {
 	if err := tx.Where("customer_id = ?", customer.CustomerID).First(&preferences).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
 			preferences = models.CustomerPreferences{
-				CustomerID:            customer.CustomerID,
-				ExclusiveDiscountType: req.ExclusiveDiscountType,
-				PlatformBoss:          req.PlatformBoss,
-				ExclusiveCS:           req.ExclusiveCS,
+				CustomerID:             customer.CustomerID,
+				ExclusiveDiscountType:  req.ExclusiveDiscountType,
+				ExclusiveDiscountRatio: req.ExclusiveDiscountRatio,
+				PlatformBoss:           req.PlatformBoss,
+				ExclusiveCS:            req.ExclusiveCS,
 			}
 			tx.Create(&preferences)
 		} else {
@@ -241,6 +267,7 @@ func UpdateCustomer(c *gin.Context) {
 		}
 	} else {
 		preferences.ExclusiveDiscountType = req.ExclusiveDiscountType
+		preferences.ExclusiveDiscountRatio = req.ExclusiveDiscountRatio
 		preferences.PlatformBoss = req.PlatformBoss
 		preferences.ExclusiveCS = req.ExclusiveCS
 		tx.Save(&preferences)
@@ -493,4 +520,55 @@ func GetCustomerRechargeHistory(c *gin.Context) {
 	}
 
 	utils.Success(c, response)
+}
+
+// AdminResetCustomerPassword 管理员重置客户密码
+// @Summary 管理员重置客户密码
+// @Description 管理员可以直接为任何客户重置密码
+// @Tags 客户管理
+// @Accept json
+// @Produce json
+// @Param reset body models.AdminResetCustomerPasswordRequest true "重置信息"
+// @Success 200 {object} models.StandardResponse
+// @Router /api/v1/customers/reset-password [post]
+func AdminResetCustomerPassword(c *gin.Context) {
+	var req models.AdminResetCustomerPasswordRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		utils.Error(c, "请求参数错误")
+		return
+	}
+
+	// 查找客户
+	var customer models.Customer
+	if err := database.DB.First(&customer, req.CustomerID).Error; err != nil {
+		if err == gorm.ErrRecordNotFound {
+			utils.NotFound(c, "客户不存在")
+		} else {
+			utils.Error(c, "查询失败")
+		}
+		return
+	}
+
+	// 生成新密码哈希
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(req.NewPassword), bcrypt.DefaultCost)
+	if err != nil {
+		utils.Error(c, "密码加密失败")
+		return
+	}
+
+	// 更新密码和状态
+	updates := map[string]interface{}{
+		"password_hash":   string(hashedPassword),
+		"password_status": "set",
+	}
+
+	if err := database.DB.Model(&customer).Updates(updates).Error; err != nil {
+		utils.Error(c, "密码重置失败")
+		return
+	}
+
+	utils.Success(c, gin.H{
+		"success": true,
+		"message": "客户密码重置成功",
+	})
 }

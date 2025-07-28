@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"log"
 	"strconv"
 	"tangsong-esports/database"
 	"tangsong-esports/models"
@@ -143,7 +144,7 @@ func CreateMember(c *gin.Context) {
 		MemberID:       member.MemberID,
 		IsAuditor:      req.IsAuditor,
 		CanReport:      req.CanReport,
-		CanAcceptOrder: req.CanAccept,
+		CanAcceptOrder: req.CanAcceptOrder,
 	}
 	if err := tx.Create(&permissions).Error; err != nil {
 		tx.Rollback()
@@ -154,7 +155,7 @@ func CreateMember(c *gin.Context) {
 	// 创建财务设置
 	financialSettings := models.MemberFinancialSettings{
 		MemberID:       member.MemberID,
-		CommissionRate: req.Commission,
+		CommissionRate: req.CommissionRate,
 	}
 	if err := tx.Create(&financialSettings).Error; err != nil {
 		tx.Rollback()
@@ -208,6 +209,7 @@ func UpdateMember(c *gin.Context) {
 
 	var req models.MemberCreateRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
+		log.Println(err)
 		utils.Error(c, "请求参数错误")
 		return
 	}
@@ -259,7 +261,7 @@ func UpdateMember(c *gin.Context) {
 				MemberID:       member.MemberID,
 				IsAuditor:      req.IsAuditor,
 				CanReport:      req.CanReport,
-				CanAcceptOrder: req.CanAccept,
+				CanAcceptOrder: req.CanAcceptOrder,
 			}
 			tx.Create(&permissions)
 		} else {
@@ -270,7 +272,7 @@ func UpdateMember(c *gin.Context) {
 	} else {
 		permissions.IsAuditor = req.IsAuditor
 		permissions.CanReport = req.CanReport
-		permissions.CanAcceptOrder = req.CanAccept
+		permissions.CanAcceptOrder = req.CanAcceptOrder
 		tx.Save(&permissions)
 	}
 
@@ -280,7 +282,7 @@ func UpdateMember(c *gin.Context) {
 		if err == gorm.ErrRecordNotFound {
 			financialSettings = models.MemberFinancialSettings{
 				MemberID:       member.MemberID,
-				CommissionRate: req.Commission,
+				CommissionRate: req.CommissionRate,
 			}
 			tx.Create(&financialSettings)
 		} else {
@@ -289,7 +291,7 @@ func UpdateMember(c *gin.Context) {
 			return
 		}
 	} else {
-		financialSettings.CommissionRate = req.Commission
+		financialSettings.CommissionRate = req.CommissionRate
 		tx.Save(&financialSettings)
 	}
 

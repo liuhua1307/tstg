@@ -1,4 +1,5 @@
 package models
+
 import (
 	"time"
 
@@ -46,6 +47,7 @@ type PlaymateOrder struct {
 	OrderNotes            string         `json:"order_notes" gorm:"type:text;comment:订单备注"`
 	PlatformOwner         string         `json:"platform_owner" gorm:"size:100;comment:所属平台老板"`
 	ReportTime            time.Time      `json:"report_time" gorm:"comment:报单时间"`
+	CustomerName          string         `json:"customerName" gorm:"<-:false;comment:客户名称（查询时关联获取）"`
 	CreatedAt             time.Time      `json:"created_at"`
 	UpdatedAt             time.Time      `json:"updated_at"`
 	DeletedAt             gorm.DeletedAt `json:"-" gorm:"index"`
@@ -111,9 +113,9 @@ func (OrderWorkflow) TableName() string {
 
 // OrderPaymentInfo 订单支付信息表
 type OrderPaymentInfo struct {
-	PaymentID     uint       `json:"payment_id" gorm:"primaryKey;column:payment_id"`                    // 修复：从 payment_info_id 改为 payment_id
-	OrderID       uint       `json:"order_id" gorm:"uniqueIndex;not null;comment:订单ID"`
-	TransactionID string     `json:"transaction_id" gorm:"type:text;comment:付款流水号"`                    // 修复：从 payment_transaction_id 改为 transaction_id
+	PaymentID     uint       `json:"payment_id" gorm:"autoIncrement:false;column:payment_id"` // 移除主键，禁用自增
+	OrderID       uint       `json:"order_id" gorm:"primaryKey;not null;comment:订单ID"`        // 改为主键
+	TransactionID string     `json:"transaction_id" gorm:"type:text;comment:付款流水号"`           // 修复：从 payment_transaction_id 改为 transaction_id
 	PaymentMethod string     `json:"payment_method" gorm:"size:50;comment:付款方式"`
 	PaymentTime   *time.Time `json:"payment_time" gorm:"comment:付款时间"`
 	PaymentAmount float64    `json:"payment_amount" gorm:"type:decimal(10,2);comment:付款金额"`
@@ -152,11 +154,11 @@ func (OrderImages) TableName() string {
 type OrderCreateRequest struct {
 	CustomerID            uint      `json:"customer_id" binding:"required"`
 	OrderCategoryID       uint      `json:"order_category_id" binding:"required"`
-	Game                  string    `json:"game" binding:"required"`
-	ProjectCategory       string    `json:"project_category" binding:"required"`
+	Game                  string    `json:"game"`
+	ProjectCategory       string    `json:"project_category"`
 	PlaymateLevel         string    `json:"playmate_level"`
-	StartTime             time.Time `json:"start_time" binding:"required"`          // 修复：从 string 改为 time.Time
-	EndTime               time.Time `json:"end_time" binding:"required"`            // 修复：从 string 改为 time.Time
+	StartTime             time.Time `json:"start_time" binding:"required"` // 修复：从 string 改为 time.Time
+	EndTime               time.Time `json:"end_time" binding:"required"`   // 修复：从 string 改为 time.Time
 	DurationHours         float64   `json:"duration_hours" binding:"required"`
 	UnitPrice             float64   `json:"unit_price" binding:"required"`
 	IsTeammate            bool      `json:"is_teammate"`
@@ -182,4 +184,158 @@ type OrderCategoryCreateRequest struct {
 	IsRequired      bool    `json:"is_required"`
 	IsAccelerated   bool    `json:"is_accelerated"`
 	AdditionalInfo  string  `json:"additional_info"`
+}
+
+// OrderApprovalHistory 订单审批操作历史表
+type OrderApprovalHistory struct {
+	ActionID     uint           `json:"action_id" gorm:"primaryKey;column:action_id"`
+	OrderID      uint           `json:"order_id" gorm:"not null;comment:订单ID"`
+	OperatorID   uint           `json:"operator_id" gorm:"not null;comment:操作人ID"`
+	OperatorName string         `json:"operator_name" gorm:"size:100;comment:操作人姓名"`
+	Action       string         `json:"action" gorm:"type:enum('approve','reject','status_change');comment:操作类型"`
+	FromStatus   string         `json:"from_status" gorm:"size:50;comment:原状态"`
+	ToStatus     string         `json:"to_status" gorm:"size:50;comment:新状态"`
+	Reason       string         `json:"reason" gorm:"type:text;comment:操作原因"`
+	Notes        string         `json:"notes" gorm:"type:text;comment:备注"`
+	CreatedAt    time.Time      `json:"created_at"`
+	UpdatedAt    time.Time      `json:"updated_at"`
+	DeletedAt    gorm.DeletedAt `json:"-" gorm:"index"`
+
+	// 关联关系
+	Order    *PlaymateOrder  `json:"order,omitempty" gorm:"foreignKey:OrderID"`
+	Operator *InternalMember `json:"operator,omitempty" gorm:"foreignKey:OperatorID"`
+}
+
+// TableName 指定表名
+func (OrderApprovalHistory) TableName() string {
+	return "order_approval_history"
+}
+
+// 订单审批相关请求结构
+type OrderApprovalFilterRequest struct {
+	PageRequest
+	OrderID          string  `json:"order_id" form:"order_id"`
+	Status           string  `json:"status" form:"status"`
+	SettlementStatus string  `json:"settlement_status" form:"settlement_status"`
+	ReporterID       uint    `json:"reporter_id" form:"reporter_id"`
+	CustomerID       uint    `json:"customer_id" form:"customer_id"`
+	Game             string  `json:"game" form:"game"`
+	Category         string  `json:"category" form:"category"`
+	StartDate        string  `json:"start_date" form:"start_date"`
+	EndDate          string  `json:"end_date" form:"end_date"`
+	DateType         string  `json:"date_type" form:"date_type"` // submit, approve, settle
+	MinAmount        float64 `json:"min_amount" form:"min_amount"`
+	MaxAmount        float64 `json:"max_amount" form:"max_amount"`
+	SortBy           string  `json:"sort_by" form:"sort_by"`
+	SortOrder        string  `json:"sort_order" form:"sort_order"`
+}
+
+type ApproveOrderRequest struct {
+	Notes string `json:"notes"`
+}
+
+type RejectOrderRequest struct {
+	Reason string `json:"reason" binding:"required"`
+	Notes  string `json:"notes"`
+}
+
+type BatchApprovalRequest struct {
+	OrderIDs []string `json:"order_ids" binding:"required"`
+	Action   string   `json:"action" binding:"required"`
+	Reason   string   `json:"reason"`
+	Notes    string   `json:"notes"`
+}
+
+type UpdateOrderStatusRequestV2 struct {
+	Status string `json:"status" binding:"required"`
+	Reason string `json:"reason"`
+	Notes  string `json:"notes"`
+}
+
+type GetStatisticsRequest struct {
+	OrderID          string  `json:"order_id" form:"order_id"`
+	Status           string  `json:"status" form:"status"`
+	SettlementStatus string  `json:"settlement_status" form:"settlement_status"`
+	ReporterID       uint    `json:"reporter_id" form:"reporter_id"`
+	CustomerID       uint    `json:"customer_id" form:"customer_id"`
+	Game             string  `json:"game" form:"game"`
+	Category         string  `json:"category" form:"category"`
+	StartDate        string  `json:"start_date" form:"start_date"`
+	EndDate          string  `json:"end_date" form:"end_date"`
+	DateType         string  `json:"date_type" form:"date_type"`
+	MinAmount        float64 `json:"min_amount" form:"min_amount"`
+	MaxAmount        float64 `json:"max_amount" form:"max_amount"`
+}
+
+// 订单统计相关结构体
+type GetOrderStatsReq struct {
+	ReporterID       *uint  `json:"reporter_id" form:"reporter_id"`
+	CustomerID       *uint  `json:"customer_id" form:"customer_id"`
+	OrderCategoryID  *uint  `json:"order_category_id" form:"order_category_id"`
+	Game             string `json:"game" form:"game"`
+	OrderStatus      string `json:"order_status" form:"order_status"`
+	SettlementStatus string `json:"settlement_status" form:"settlement_status"`
+	StartDate        string `json:"start_date" form:"start_date"`
+	EndDate          string `json:"end_date" form:"end_date"`
+}
+
+type GetOrderStatsResData struct {
+	TotalCount         int     `json:"totalCount"`
+	TotalDurationHours float64 `json:"totalDurationHours"`
+	TotalAmount        float64 `json:"totalAmount"`
+	TotalCommission    float64 `json:"totalCommission"`
+}
+
+type GetOperationHistoryRequest struct {
+	PageRequest
+	OrderID    string `json:"order_id" form:"order_id"`
+	OperatorID uint   `json:"operator_id" form:"operator_id"`
+	Action     string `json:"action" form:"action"`
+	StartDate  string `json:"start_date" form:"start_date"`
+	EndDate    string `json:"end_date" form:"end_date"`
+}
+
+type BatchExportRequest struct {
+	OrderIDs []string `json:"order_ids" binding:"required"`
+	Format   string   `json:"format" binding:"required"`
+	Fields   []string `json:"fields"`
+}
+
+// 响应结构
+type OrderStatistics struct {
+	TotalCount         int64            `json:"total_count"`
+	TotalHours         float64          `json:"total_hours"`
+	TotalAmount        float64          `json:"total_amount"`
+	TotalCommission    float64          `json:"total_commission"`
+	AveragePrice       float64          `json:"average_price"`
+	StatusDistribution map[string]int64 `json:"status_distribution"`
+	DailyTrend         []DailyTrendItem `json:"daily_trend"`
+}
+
+type DailyTrendItem struct {
+	Date   string  `json:"date"`
+	Count  int64   `json:"count"`
+	Amount float64 `json:"amount"`
+}
+
+type BatchApprovalResponse struct {
+	Success      bool                   `json:"success"`
+	SuccessCount int                    `json:"success_count"`
+	FailureCount int                    `json:"failure_count"`
+	Failures     []BatchApprovalFailure `json:"failures"`
+}
+
+type BatchApprovalFailure struct {
+	OrderID string `json:"order_id"`
+	Error   string `json:"error"`
+}
+
+type BatchExportResponse struct {
+	DownloadURL string `json:"download_url"`
+	Filename    string `json:"filename"`
+}
+
+type StandardResponse struct {
+	Success bool   `json:"success"`
+	Message string `json:"message"`
 }

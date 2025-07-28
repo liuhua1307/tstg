@@ -33,8 +33,15 @@ func InitRouter() *gin.Engine {
 		// 公开路由（无需认证）
 		public := api.Group("")
 		{
+			// 内部员工认证
 			public.POST("/login", controllers.Login)
 			public.POST("/refresh", controllers.RefreshToken)
+
+			// 客户认证
+			public.POST("/customer/register", controllers.CustomerRegister)
+			public.POST("/customer/login", controllers.CustomerLogin)
+			public.POST("/customer/refresh", controllers.CustomerRefreshToken)
+			public.POST("/customer/set-password", controllers.CustomerSetPassword)
 		}
 
 		// 受保护路由（需要认证）
@@ -61,7 +68,16 @@ func InitRouter() *gin.Engine {
 				customers.GET("/:id", controllers.GetCustomerByID)
 				customers.POST("/:id/recharge", controllers.RechargeCustomer)
 				customers.GET("/:id/recharge-history", controllers.GetCustomerRechargeHistory)
+				customers.POST("/reset-password", controllers.AdminResetCustomerPassword)
 			}
+
+			// 客户个人信息
+			protected.GET("/customer/profile", controllers.GetCustomerProfile)
+			protected.PUT("/customer/profile", controllers.UpdateCustomerProfile)
+			protected.GET("/customer/balance", controllers.GetCustomerBalance)
+			protected.POST("/customer/reset-password", controllers.CustomerResetPassword)
+			// 客户查看自己的订单
+			protected.GET("/customer/orders", controllers.GetCustomerOrders)
 
 			// 订单类别管理
 			categories := protected.Group("/order-categories")
@@ -81,6 +97,21 @@ func InitRouter() *gin.Engine {
 				orders.GET("/:id", controllers.GetOrderByID)
 				orders.PUT("/:id/status", controllers.UpdateOrderStatus)
 				orders.POST("/:id/images", controllers.UploadOrderImages)
+				orders.GET("/stats", controllers.GetOrderStats)
+			}
+
+			// 订单审批管理
+			approval := protected.Group("/order-approval")
+			{
+				approval.GET("/pending", controllers.GetPendingOrders)
+				approval.GET("", controllers.GetApprovalOrders)
+				approval.POST("/:id/approve", controllers.ApproveOrder)
+				approval.POST("/:id/reject", controllers.RejectOrder)
+				approval.POST("/batch", controllers.BatchApproval)
+				approval.PATCH("/:id/status", controllers.UpdateOrderStatusV2)
+				approval.GET("/statistics", controllers.GetStatistics)
+				approval.GET("/history", controllers.GetOperationHistory)
+				approval.POST("/export", controllers.BatchExport)
 			}
 
 			// 系统配置
