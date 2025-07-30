@@ -15,7 +15,6 @@ type Customer struct {
 	ContactMethod   string         `json:"contact_method" gorm:"size:100;comment:联系方式（微信/QQ/手机）"`
 	PhoneNumber     string         `json:"phone_number" gorm:"size:20;comment:手机号码"`
 	MemberBirthday  *time.Time     `json:"member_birthday" gorm:"type:date;comment:会员生日"`
-	RoomCode        string         `json:"room_code" gorm:"size:50;comment:房间码"`
 	AdditionalInfo1 string         `json:"additional_info1" gorm:"type:text;comment:附加信息1"`
 	AdditionalInfo2 string         `json:"additional_info2" gorm:"type:text;comment:附加信息2"`
 	AdditionalInfo3 string         `json:"additional_info3" gorm:"type:text;comment:附加信息3"`
@@ -113,7 +112,6 @@ type CustomerCreateRequest struct {
 	ContactMethod          string     `json:"contact_method"`
 	PhoneNumber            string     `json:"phone_number"`
 	MemberBirthday         *time.Time `json:"member_birthday"` // 修复：改为 *time.Time 类型
-	RoomCode               string     `json:"room_code"`
 	AdditionalInfo1        string     `json:"additional_info1"`
 	AdditionalInfo2        string     `json:"additional_info2"`
 	AdditionalInfo3        string     `json:"additional_info3"`
@@ -142,7 +140,6 @@ type CustomerRegisterRequest struct {
 	ContactMethod   string     `json:"contact_method"`
 	PhoneNumber     string     `json:"phone_number"`
 	MemberBirthday  *time.Time `json:"member_birthday"`
-	RoomCode        string     `json:"room_code"`
 	AdditionalInfo1 string     `json:"additional_info1"`
 	AdditionalInfo2 string     `json:"additional_info2"`
 	AdditionalInfo3 string     `json:"additional_info3"`

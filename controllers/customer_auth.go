@@ -70,7 +70,6 @@ func CustomerRegister(c *gin.Context) {
 		ContactMethod:   req.ContactMethod,
 		PhoneNumber:     req.PhoneNumber,
 		MemberBirthday:  req.MemberBirthday,
-		RoomCode:        req.RoomCode,
 		AdditionalInfo1: req.AdditionalInfo1,
 		AdditionalInfo2: req.AdditionalInfo2,
 		AdditionalInfo3: req.AdditionalInfo3,
@@ -376,7 +375,6 @@ func UpdateCustomerProfile(c *gin.Context) {
 	customer.ContactMethod = req.ContactMethod
 	customer.PhoneNumber = req.PhoneNumber
 	customer.MemberBirthday = req.MemberBirthday
-	customer.RoomCode = req.RoomCode
 	customer.AdditionalInfo1 = req.AdditionalInfo1
 	customer.AdditionalInfo2 = req.AdditionalInfo2
 	customer.AdditionalInfo3 = req.AdditionalInfo3

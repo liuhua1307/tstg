@@ -140,7 +140,6 @@ func CreateCustomer(c *gin.Context) {
 		ContactMethod:   req.ContactMethod,
 		PhoneNumber:     req.PhoneNumber,
 		MemberBirthday:  req.MemberBirthday, // 直接使用 *time.Time 类型
-		RoomCode:        req.RoomCode,
 		AdditionalInfo1: req.AdditionalInfo1,
 		AdditionalInfo2: req.AdditionalInfo2,
 		AdditionalInfo3: req.AdditionalInfo3,
@@ -236,7 +235,6 @@ func UpdateCustomer(c *gin.Context) {
 	customer.ContactMethod = req.ContactMethod
 	customer.PhoneNumber = req.PhoneNumber
 	customer.MemberBirthday = req.MemberBirthday // 直接使用 *time.Time 类型
-	customer.RoomCode = req.RoomCode
 	customer.AdditionalInfo1 = req.AdditionalInfo1
 	customer.AdditionalInfo2 = req.AdditionalInfo2
 	customer.AdditionalInfo3 = req.AdditionalInfo3

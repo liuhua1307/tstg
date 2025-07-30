@@ -40,12 +40,9 @@ type PlaymateOrder struct {
 	StartTime             time.Time      `json:"start_time" gorm:"not null;comment:开始时间"`
 	EndTime               time.Time      `json:"end_time" gorm:"not null;comment:结束时间"`
 	DurationHours         float64        `json:"duration_hours" gorm:"type:decimal(5,2);not null;comment:陪玩时长（小时）"`
-	IsTeammate            bool           `json:"is_teammate" gorm:"default:false;comment:是否队友"`
-	Mode                  string         `json:"mode" gorm:"size:50;comment:报单模式"`
 	ServiceAdditionalInfo string         `json:"service_additional_info" gorm:"type:text;comment:服务附加说明"`
 	InternalNotes         string         `json:"internal_notes" gorm:"type:text;comment:内部备注"`
 	OrderNotes            string         `json:"order_notes" gorm:"type:text;comment:订单备注"`
-	PlatformOwner         string         `json:"platform_owner" gorm:"size:100;comment:所属平台老板"`
 	ReportTime            time.Time      `json:"report_time" gorm:"comment:报单时间"`
 	CustomerName          string         `json:"customerName" gorm:"<-:false;comment:客户名称（查询时关联获取）"`
 	CreatedAt             time.Time      `json:"created_at"`
@@ -161,12 +158,9 @@ type OrderCreateRequest struct {
 	EndTime               time.Time `json:"end_time" binding:"required"`   // 修复：从 string 改为 time.Time
 	DurationHours         float64   `json:"duration_hours" binding:"required"`
 	UnitPrice             float64   `json:"unit_price" binding:"required"`
-	IsTeammate            bool      `json:"is_teammate"`
-	Mode                  string    `json:"mode"`
 	ServiceAdditionalInfo string    `json:"service_additional_info"`
 	InternalNotes         string    `json:"internal_notes"`
 	OrderNotes            string    `json:"order_notes"`
-	PlatformOwner         string    `json:"platform_owner"`
 	ExclusiveDiscount     bool      `json:"exclusive_discount"`
 }
 

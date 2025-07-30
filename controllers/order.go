@@ -337,12 +337,9 @@ func CreateOrder(c *gin.Context) {
 		StartTime:             req.StartTime,
 		EndTime:               req.EndTime,
 		DurationHours:         req.DurationHours,
-		IsTeammate:            req.IsTeammate,
-		Mode:                  req.Mode,
 		ServiceAdditionalInfo: req.ServiceAdditionalInfo,
 		InternalNotes:         req.InternalNotes,
 		OrderNotes:            req.OrderNotes,
-		PlatformOwner:         req.PlatformOwner,
 		ReportTime:            time.Now(),
 	}
 
@@ -466,12 +463,9 @@ func UpdateOrder(c *gin.Context) {
 	order.StartTime = req.StartTime
 	order.EndTime = req.EndTime
 	order.DurationHours = req.DurationHours
-	order.IsTeammate = req.IsTeammate
-	order.Mode = req.Mode
 	order.ServiceAdditionalInfo = req.ServiceAdditionalInfo
 	order.InternalNotes = req.InternalNotes
 	order.OrderNotes = req.OrderNotes
-	order.PlatformOwner = req.PlatformOwner
 
 	if err := tx.Save(&order).Error; err != nil {
 		tx.Rollback()
