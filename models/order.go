@@ -34,9 +34,7 @@ type PlaymateOrder struct {
 	ReporterID            uint      `json:"reporter_id" gorm:"not null;comment:报单人ID"`
 	CustomerID            uint      `json:"customer_id" gorm:"not null;comment:客户ID"`
 	OrderCategoryID       uint      `json:"order_category_id" gorm:"not null;comment:订单类别ID"`
-	Game                  string    `json:"game" gorm:"size:100;not null;comment:游戏名称"`
 	ProjectCategory       string    `json:"project_category" gorm:"size:100;not null;comment:项目分类"`
-	PlaymateLevel         string    `json:"playmate_level" gorm:"size:50;comment:陪玩等级"`
 	StartTime             time.Time `json:"start_time" gorm:"not null;comment:开始时间"`
 	EndTime               time.Time `json:"end_time" gorm:"not null;comment:结束时间"`
 	DurationHours         float64   `json:"duration_hours" gorm:"type:decimal(5,2);not null;comment:陪玩时长（小时）"`
@@ -89,16 +87,14 @@ func (OrderPricing) TableName() string {
 
 // OrderWorkflow 订单工作流状态表
 type OrderWorkflow struct {
-	WorkflowID       uint       `json:"workflow_id" gorm:"primaryKey;column:workflow_id"`
-	OrderID          uint       `json:"order_id" gorm:"uniqueIndex;not null;comment:订单ID"`
-	OrderStatus      string     `json:"order_status" gorm:"type:enum('待处理','驳回','已确认','已结算','已完成','已退回');default:'待处理';comment:订单状态"`
-	SettlementStatus string     `json:"settlement_status" gorm:"type:enum('未结算','已结算');default:'未结算';comment:结算状态"`
-	ApproverID       *uint      `json:"approver_id" gorm:"comment:审批人ID"`
-	ApprovalTime     *time.Time `json:"approval_time" gorm:"comment:审批时间"`
-	RejectionReason  string     `json:"rejection_reason" gorm:"type:text;comment:驳回原因"`
-	SettlementTime   *time.Time `json:"settlement_time" gorm:"comment:结算时间"`
-	CreatedAt        time.Time  `json:"created_at"`
-	UpdatedAt        time.Time  `json:"updated_at"`
+	WorkflowID      uint       `json:"workflow_id" gorm:"primaryKey;column:workflow_id"`
+	OrderID         uint       `json:"order_id" gorm:"uniqueIndex;not null;comment:订单ID"`
+	OrderStatus     string     `json:"order_status" gorm:"type:enum('待处理','驳回','已确认','已退回');default:'待处理';comment:订单状态"`
+	ApproverID      *uint      `json:"approver_id" gorm:"comment:审批人ID"`
+	ApprovalTime    *time.Time `json:"approval_time" gorm:"comment:审批时间"`
+	RejectionReason string     `json:"rejection_reason" gorm:"type:text;comment:驳回原因"`
+	CreatedAt       time.Time  `json:"created_at"`
+	UpdatedAt       time.Time  `json:"updated_at"`
 
 	// 关联关系
 	Order    *PlaymateOrder  `json:"order,omitempty" gorm:"foreignKey:OrderID"`
@@ -153,9 +149,7 @@ func (OrderImages) TableName() string {
 type OrderCreateRequest struct {
 	CustomerID            uint      `json:"customer_id" binding:"required"`
 	OrderCategoryID       uint      `json:"order_category_id" binding:"required"`
-	Game                  string    `json:"game"`
 	ProjectCategory       string    `json:"project_category"`
-	PlaymateLevel         string    `json:"playmate_level"`
 	StartTime             time.Time `json:"start_time" binding:"required"` // 修复：从 string 改为 time.Time
 	EndTime               time.Time `json:"end_time" binding:"required"`   // 修复：从 string 改为 time.Time
 	DurationHours         float64   `json:"duration_hours" binding:"required"`
@@ -211,20 +205,18 @@ func (OrderApprovalHistory) TableName() string {
 // 订单审批相关请求结构
 type OrderApprovalFilterRequest struct {
 	PageRequest
-	OrderID          string  `json:"order_id" form:"order_id"`
-	Status           string  `json:"status" form:"status"`
-	SettlementStatus string  `json:"settlement_status" form:"settlement_status"`
-	ReporterID       uint    `json:"reporter_id" form:"reporter_id"`
-	CustomerID       uint    `json:"customer_id" form:"customer_id"`
-	Game             string  `json:"game" form:"game"`
-	Category         string  `json:"category" form:"category"`
-	StartDate        string  `json:"start_date" form:"start_date"`
-	EndDate          string  `json:"end_date" form:"end_date"`
-	DateType         string  `json:"date_type" form:"date_type"` // submit, approve, settle
-	MinAmount        float64 `json:"min_amount" form:"min_amount"`
-	MaxAmount        float64 `json:"max_amount" form:"max_amount"`
-	SortBy           string  `json:"sort_by" form:"sort_by"`
-	SortOrder        string  `json:"sort_order" form:"sort_order"`
+	OrderID    string  `json:"order_id" form:"order_id"`
+	Status     string  `json:"status" form:"status"`
+	ReporterID uint    `json:"reporter_id" form:"reporter_id"`
+	CustomerID uint    `json:"customer_id" form:"customer_id"`
+	Category   string  `json:"category" form:"category"`
+	StartDate  string  `json:"start_date" form:"start_date"`
+	EndDate    string  `json:"end_date" form:"end_date"`
+	DateType   string  `json:"date_type" form:"date_type"` // submit, approve, settle
+	MinAmount  float64 `json:"min_amount" form:"min_amount"`
+	MaxAmount  float64 `json:"max_amount" form:"max_amount"`
+	SortBy     string  `json:"sort_by" form:"sort_by"`
+	SortOrder  string  `json:"sort_order" form:"sort_order"`
 }
 
 type ApproveOrderRequest struct {
@@ -250,30 +242,26 @@ type UpdateOrderStatusRequestV2 struct {
 }
 
 type GetStatisticsRequest struct {
-	OrderID          string  `json:"order_id" form:"order_id"`
-	Status           string  `json:"status" form:"status"`
-	SettlementStatus string  `json:"settlement_status" form:"settlement_status"`
-	ReporterID       uint    `json:"reporter_id" form:"reporter_id"`
-	CustomerID       uint    `json:"customer_id" form:"customer_id"`
-	Game             string  `json:"game" form:"game"`
-	Category         string  `json:"category" form:"category"`
-	StartDate        string  `json:"start_date" form:"start_date"`
-	EndDate          string  `json:"end_date" form:"end_date"`
-	DateType         string  `json:"date_type" form:"date_type"`
-	MinAmount        float64 `json:"min_amount" form:"min_amount"`
-	MaxAmount        float64 `json:"max_amount" form:"max_amount"`
+	OrderID    string  `json:"order_id" form:"order_id"`
+	Status     string  `json:"status" form:"status"`
+	ReporterID uint    `json:"reporter_id" form:"reporter_id"`
+	CustomerID uint    `json:"customer_id" form:"customer_id"`
+	Category   string  `json:"category" form:"category"`
+	StartDate  string  `json:"start_date" form:"start_date"`
+	EndDate    string  `json:"end_date" form:"end_date"`
+	DateType   string  `json:"date_type" form:"date_type"`
+	MinAmount  float64 `json:"min_amount" form:"min_amount"`
+	MaxAmount  float64 `json:"max_amount" form:"max_amount"`
 }
 
 // 订单统计相关结构体
 type GetOrderStatsReq struct {
-	ReporterID       *uint  `json:"reporter_id" form:"reporter_id"`
-	CustomerID       *uint  `json:"customer_id" form:"customer_id"`
-	OrderCategoryID  *uint  `json:"order_category_id" form:"order_category_id"`
-	Game             string `json:"game" form:"game"`
-	OrderStatus      string `json:"order_status" form:"order_status"`
-	SettlementStatus string `json:"settlement_status" form:"settlement_status"`
-	StartDate        string `json:"start_date" form:"start_date"`
-	EndDate          string `json:"end_date" form:"end_date"`
+	ReporterID      *uint  `json:"reporter_id" form:"reporter_id"`
+	CustomerID      *uint  `json:"customer_id" form:"customer_id"`
+	OrderCategoryID *uint  `json:"order_category_id" form:"order_category_id"`
+	OrderStatus     string `json:"order_status" form:"order_status"`
+	StartDate       string `json:"start_date" form:"start_date"`
+	EndDate         string `json:"end_date" form:"end_date"`
 }
 
 type GetOrderStatsResData struct {

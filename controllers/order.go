@@ -188,7 +188,6 @@ func DeleteOrderCategory(c *gin.Context) {
 // @Param page_size query int false "每页数量" default(10)
 // @Param reporter_id query int false "报单人ID"
 // @Param customer_id query int false "客户ID"
-// @Param game query string false "游戏名称"
 // @Param order_status query string false "订单状态"
 // @Param start_date query string false "开始日期(YYYY-MM-DD)"
 // @Param end_date query string false "结束日期(YYYY-MM-DD)"
@@ -240,9 +239,6 @@ func GetOrders(c *gin.Context) {
 		if customerID, err := strconv.ParseUint(customerIDStr, 10, 32); err == nil {
 			query = query.Where("playmate_orders.customer_id = ?", uint(customerID))
 		}
-	}
-	if game := c.Query("game"); game != "" {
-		query = query.Where("playmate_orders.game LIKE ?", "%"+game+"%")
 	}
 	if startDate := c.Query("start_date"); startDate != "" {
 		query = query.Where("DATE(playmate_orders.start_time) >= ?", startDate)
@@ -331,9 +327,7 @@ func CreateOrder(c *gin.Context) {
 		ReporterID:            reporterID.(uint),
 		CustomerID:            req.CustomerID,
 		OrderCategoryID:       req.OrderCategoryID,
-		Game:                  req.Game,
 		ProjectCategory:       req.ProjectCategory,
-		PlaymateLevel:         req.PlaymateLevel,
 		StartTime:             req.StartTime,
 		EndTime:               req.EndTime,
 		DurationHours:         req.DurationHours,
@@ -378,9 +372,8 @@ func CreateOrder(c *gin.Context) {
 
 	// 创建工作流状态
 	workflow := models.OrderWorkflow{
-		OrderID:          order.OrderID,
-		OrderStatus:      "待处理",
-		SettlementStatus: "未结算",
+		OrderID:     order.OrderID,
+		OrderStatus: "待处理",
 	}
 	if err := tx.Create(&workflow).Error; err != nil {
 		tx.Rollback()
@@ -459,9 +452,7 @@ func UpdateOrder(c *gin.Context) {
 	tx := database.DB.Begin()
 
 	// 更新订单基本信息
-	order.Game = req.Game
 	order.ProjectCategory = req.ProjectCategory
-	order.PlaymateLevel = req.PlaymateLevel
 	order.StartTime = req.StartTime
 	order.EndTime = req.EndTime
 	order.DurationHours = req.DurationHours
@@ -596,11 +587,6 @@ func UpdateOrderStatus(c *gin.Context) {
 		workflow.RejectionReason = req.RejectionReason
 	}
 
-	if req.OrderStatus == "已结算" {
-		workflow.SettlementStatus = "已结算"
-		workflow.SettlementTime = &now
-	}
-
 	if err := database.DB.Save(&workflow).Error; err != nil {
 		utils.Error(c, "更新状态失败")
 		return
@@ -675,7 +661,6 @@ func UploadOrderImages(c *gin.Context) {
 // @Param order_category_id query int false "订单类别ID"
 // @Param game query string false "游戏名称"
 // @Param order_status query string false "订单状态"
-// @Param settlement_status query string false "结算状态"
 // @Param start_date query string false "开始日期(YYYY-MM-DD)"
 // @Param end_date query string false "结束日期(YYYY-MM-DD)"
 // @Success 200 {object} models.Response{data=models.GetOrderStatsResData}
@@ -703,14 +688,8 @@ func GetOrderStats(c *gin.Context) {
 	if req.OrderCategoryID != nil {
 		query = query.Where("playmate_orders.order_category_id = ?", *req.OrderCategoryID)
 	}
-	if req.Game != "" {
-		query = query.Where("playmate_orders.game LIKE ?", "%"+req.Game+"%")
-	}
 	if req.OrderStatus != "" {
 		query = query.Where("order_workflow.order_status = ?", req.OrderStatus)
-	}
-	if req.SettlementStatus != "" {
-		query = query.Where("order_workflow.settlement_status = ?", req.SettlementStatus)
 	}
 	if req.StartDate != "" {
 		query = query.Where("DATE(playmate_orders.start_time) >= ?", req.StartDate)
@@ -1262,12 +1241,6 @@ func BatchApproval(c *gin.Context) {
 			newStatus = "驳回"
 			action = "reject"
 			workflow.RejectionReason = req.Reason
-		case "settle":
-			newStatus = "已结算"
-			action = "status_change"
-			workflow.SettlementStatus = "已结算"
-			now := time.Now()
-			workflow.SettlementTime = &now
 		default:
 			failures = append(failures, models.BatchApprovalFailure{
 				OrderID: orderIDStr,
@@ -1391,11 +1364,6 @@ func UpdateOrderStatusV2(c *gin.Context) {
 		workflow.RejectionReason = req.Reason
 	}
 
-	if req.Status == "已结算" {
-		workflow.SettlementStatus = "已结算"
-		workflow.SettlementTime = &now
-	}
-
 	if err := tx.Save(&workflow).Error; err != nil {
 		tx.Rollback()
 		utils.Error(c, "更新订单状态失败")
@@ -1452,18 +1420,16 @@ func GetStatistics(c *gin.Context) {
 
 	// 应用筛选条件
 	filterReq := models.OrderApprovalFilterRequest{
-		OrderID:          req.OrderID,
-		Status:           req.Status,
-		SettlementStatus: req.SettlementStatus,
-		ReporterID:       req.ReporterID,
-		CustomerID:       req.CustomerID,
-		Game:             req.Game,
-		Category:         req.Category,
-		StartDate:        req.StartDate,
-		EndDate:          req.EndDate,
-		DateType:         req.DateType,
-		MinAmount:        req.MinAmount,
-		MaxAmount:        req.MaxAmount,
+		OrderID:    req.OrderID,
+		Status:     req.Status,
+		ReporterID: req.ReporterID,
+		CustomerID: req.CustomerID,
+		Category:   req.Category,
+		StartDate:  req.StartDate,
+		EndDate:    req.EndDate,
+		DateType:   req.DateType,
+		MinAmount:  req.MinAmount,
+		MaxAmount:  req.MaxAmount,
 	}
 	query = applyOrderFilters(query, filterReq)
 
@@ -1681,18 +1647,14 @@ func applyOrderFilters(query *gorm.DB, req models.OrderApprovalFilterRequest) *g
 	if req.Status != "" && req.Status != "all" {
 		query = query.Where("order_workflow.order_status = ?", req.Status)
 	}
-	if req.SettlementStatus != "" && req.SettlementStatus != "all" {
-		query = query.Where("order_workflow.settlement_status = ?", req.SettlementStatus)
-	}
+
 	if req.ReporterID > 0 {
 		query = query.Where("playmate_orders.reporter_id = ?", req.ReporterID)
 	}
 	if req.CustomerID > 0 {
 		query = query.Where("playmate_orders.customer_id = ?", req.CustomerID)
 	}
-	if req.Game != "" {
-		query = query.Where("playmate_orders.game LIKE ?", "%"+req.Game+"%")
-	}
+
 	if req.Category != "" {
 		query = query.Joins("JOIN order_categories ON playmate_orders.order_category_id = order_categories.category_id").
 			Where("order_categories.category_name LIKE ?", "%"+req.Category+"%")
@@ -1703,8 +1665,6 @@ func applyOrderFilters(query *gorm.DB, req models.OrderApprovalFilterRequest) *g
 		switch req.DateType {
 		case "approve":
 			query = query.Where("DATE(order_workflow.approval_time) >= ?", req.StartDate)
-		case "settle":
-			query = query.Where("DATE(order_workflow.settlement_time) >= ?", req.StartDate)
 		default: // submit
 			query = query.Where("DATE(playmate_orders.report_time) >= ?", req.StartDate)
 		}
@@ -1713,8 +1673,6 @@ func applyOrderFilters(query *gorm.DB, req models.OrderApprovalFilterRequest) *g
 		switch req.DateType {
 		case "approve":
 			query = query.Where("DATE(order_workflow.approval_time) <= ?", req.EndDate)
-		case "settle":
-			query = query.Where("DATE(order_workflow.settlement_time) <= ?", req.EndDate)
 		default: // submit
 			query = query.Where("DATE(playmate_orders.report_time) <= ?", req.EndDate)
 		}
@@ -1742,8 +1700,6 @@ func applyOrderFilters(query *gorm.DB, req models.OrderApprovalFilterRequest) *g
 			sortField = "playmate_orders.end_time"
 		case "approval_time":
 			sortField = "order_workflow.approval_time"
-		case "settlement_time":
-			sortField = "order_workflow.settlement_time"
 		}
 
 		sortOrder := "DESC"
@@ -1765,8 +1721,7 @@ func applyOrderFilters(query *gorm.DB, req models.OrderApprovalFilterRequest) *g
 // @Produce json
 // @Param page query int false "页码" default(1)
 // @Param page_size query int false "每页数量" default(10)
-// @Param order_status query string false "订单状态筛选" Enums(待处理,已确认,驳回,已结算,已完成,已退回)
-// @Param game query string false "游戏名称筛选"
+// @Param order_status query string false "订单状态筛选" Enums(待处理,已确认,驳回,已退回)
 // @Param start_date query string false "开始日期(YYYY-MM-DD)"
 // @Param end_date query string false "结束日期(YYYY-MM-DD)"
 // @Success 200 {object} models.Response{data=models.PageResponse}
@@ -1804,9 +1759,6 @@ func GetCustomerOrders(c *gin.Context) {
 	query := database.DB.Model(&models.PlaymateOrder{}).Where("playmate_orders.customer_id = ?", customerID)
 
 	// 搜索条件
-	if game := c.Query("game"); game != "" {
-		query = query.Where("playmate_orders.game LIKE ?", "%"+game+"%")
-	}
 	if startDate := c.Query("start_date"); startDate != "" {
 		query = query.Where("DATE(playmate_orders.start_time) >= ?", startDate)
 	}
