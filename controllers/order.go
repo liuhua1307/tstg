@@ -265,7 +265,7 @@ func GetOrders(c *gin.Context) {
 	var orders []models.PlaymateOrder
 	offset := (req.Page - 1) * req.PageSize
 	err := query.
-		Select("playmate_orders.*, customers.customer_name AS customerName").
+		Select("playmate_orders.*").
 		Joins("LEFT JOIN customers ON playmate_orders.customer_id = customers.customer_id").
 		Preload("Reporter").Preload("Customer").Preload("Category").
 		Preload("Pricing").Preload("Workflow").Preload("PaymentInfo").
@@ -316,7 +316,7 @@ func CreateOrder(c *gin.Context) {
 		utils.Error(c, "客户不存在")
 		return
 	}
-
+	fmt.Println(customer)
 	var category models.OrderCategory
 	if err := database.DB.First(&category, req.OrderCategoryID).Error; err != nil {
 		utils.Error(c, "订单类别不存在")
@@ -340,6 +340,8 @@ func CreateOrder(c *gin.Context) {
 		ServiceAdditionalInfo: req.ServiceAdditionalInfo,
 		InternalNotes:         req.InternalNotes,
 		OrderNotes:            req.OrderNotes,
+		CustomerName:          customer.CustomerName,
+		UseBalancePayment:     req.UseBalancePayment,
 		ReportTime:            time.Now(),
 	}
 
@@ -789,7 +791,7 @@ func GetPendingOrders(c *gin.Context) {
 	var orders []models.PlaymateOrder
 	offset := (req.Page - 1) * req.PageSize
 	err := query.
-		Select("playmate_orders.*, customers.customer_name AS customerName").
+		Select("playmate_orders.* ").
 		Joins("LEFT JOIN customers ON playmate_orders.customer_id = customers.customer_id").
 		Preload("Reporter").Preload("Customer").Preload("Category").
 		Preload("Pricing").Preload("Workflow").Preload("PaymentInfo").
@@ -848,7 +850,7 @@ func GetApprovalOrders(c *gin.Context) {
 	var orders []models.PlaymateOrder
 	offset := (req.Page - 1) * req.PageSize
 	err := query.
-		Select("playmate_orders.*, customers.customer_name AS customerName").
+		Select("playmate_orders.*").
 		Joins("LEFT JOIN customers ON playmate_orders.customer_id = customers.customer_id").
 		Preload("Reporter").Preload("Customer").Preload("Category").
 		Preload("Pricing").Preload("Workflow").Preload("PaymentInfo").
@@ -967,7 +969,34 @@ func ApproveOrder(c *gin.Context) {
 		utils.Error(c, "获取订单信息失败")
 		return
 	}
+	// 检查订单是否允许使用余额支付
+	if order.UseBalancePayment == false {
+		// 更新订单支付状态
+		var paymentInfo models.OrderPaymentInfo
+		if err := tx.Where("order_id = ?", uint(id)).First(&paymentInfo).Error; err != nil {
+			tx.Rollback()
+			utils.Error(c, "获取支付信息失败")
+			return
+		}
+		paymentInfo.PaymentStatus = "已付款"
+		paymentInfo.PaymentMethod = "直接支付"
+		paymentTime := time.Now()
+		paymentInfo.PaymentTime = &paymentTime
+		if err := tx.Save(&paymentInfo).Error; err != nil {
+			tx.Rollback()
+			utils.Error(c, "更新支付状态失败")
+			return
+		}
+		// 提交事务
+		tx.Commit()
+		response := models.StandardResponse{
+			Success: true,
+			Message: fmt.Sprintf("订单审批成功,未走余额支付流程，订单ID: %d", id),
+		}
 
+		utils.SuccessWithMessage(c, "订单审批成功", response)
+		return
+	}
 	// 获取客户财务信息
 	var customerFinancial models.CustomerFinancialInfo
 	if err := tx.Where("customer_id = ?", order.CustomerID).First(&customerFinancial).Error; err != nil {
@@ -1799,7 +1828,7 @@ func GetCustomerOrders(c *gin.Context) {
 	var orders []models.PlaymateOrder
 	offset := (req.Page - 1) * req.PageSize
 	err := query.
-		Select("playmate_orders.*, customers.customer_name AS customerName").
+		Select("playmate_orders.*").
 		Joins("LEFT JOIN customers ON playmate_orders.customer_id = customers.customer_id").
 		Preload("Reporter").Preload("Customer").Preload("Category").
 		Preload("Pricing").Preload("Workflow").Preload("PaymentInfo").

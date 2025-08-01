@@ -30,24 +30,26 @@ func (OrderCategory) TableName() string {
 
 // PlaymateOrder 陪玩报单基本信息表
 type PlaymateOrder struct {
-	OrderID               uint           `json:"order_id" gorm:"primaryKey;column:order_id"`
-	ReporterID            uint           `json:"reporter_id" gorm:"not null;comment:报单人ID"`
-	CustomerID            uint           `json:"customer_id" gorm:"not null;comment:客户ID"`
-	OrderCategoryID       uint           `json:"order_category_id" gorm:"not null;comment:订单类别ID"`
-	Game                  string         `json:"game" gorm:"size:100;not null;comment:游戏名称"`
-	ProjectCategory       string         `json:"project_category" gorm:"size:100;not null;comment:项目分类"`
-	PlaymateLevel         string         `json:"playmate_level" gorm:"size:50;comment:陪玩等级"`
-	StartTime             time.Time      `json:"start_time" gorm:"not null;comment:开始时间"`
-	EndTime               time.Time      `json:"end_time" gorm:"not null;comment:结束时间"`
-	DurationHours         float64        `json:"duration_hours" gorm:"type:decimal(5,2);not null;comment:陪玩时长（小时）"`
-	ServiceAdditionalInfo string         `json:"service_additional_info" gorm:"type:text;comment:服务附加说明"`
-	InternalNotes         string         `json:"internal_notes" gorm:"type:text;comment:内部备注"`
-	OrderNotes            string         `json:"order_notes" gorm:"type:text;comment:订单备注"`
-	ReportTime            time.Time      `json:"report_time" gorm:"comment:报单时间"`
-	CustomerName          string         `json:"customerName" gorm:"<-:false;comment:客户名称（查询时关联获取）"`
-	CreatedAt             time.Time      `json:"created_at"`
-	UpdatedAt             time.Time      `json:"updated_at"`
-	DeletedAt             gorm.DeletedAt `json:"-" gorm:"index"`
+	OrderID               uint      `json:"order_id" gorm:"primaryKey;column:order_id"`
+	ReporterID            uint      `json:"reporter_id" gorm:"not null;comment:报单人ID"`
+	CustomerID            uint      `json:"customer_id" gorm:"not null;comment:客户ID"`
+	OrderCategoryID       uint      `json:"order_category_id" gorm:"not null;comment:订单类别ID"`
+	Game                  string    `json:"game" gorm:"size:100;not null;comment:游戏名称"`
+	ProjectCategory       string    `json:"project_category" gorm:"size:100;not null;comment:项目分类"`
+	PlaymateLevel         string    `json:"playmate_level" gorm:"size:50;comment:陪玩等级"`
+	StartTime             time.Time `json:"start_time" gorm:"not null;comment:开始时间"`
+	EndTime               time.Time `json:"end_time" gorm:"not null;comment:结束时间"`
+	DurationHours         float64   `json:"duration_hours" gorm:"type:decimal(5,2);not null;comment:陪玩时长（小时）"`
+	ServiceAdditionalInfo string    `json:"service_additional_info" gorm:"type:text;comment:服务附加说明"`
+	InternalNotes         string    `json:"internal_notes" gorm:"type:text;comment:内部备注"`
+	OrderNotes            string    `json:"order_notes" gorm:"type:text;comment:订单备注"`
+	ReportTime            time.Time `json:"report_time" gorm:"comment:报单时间"`
+	CustomerName          string    `json:"customer_name" gorm:"comment:客户名称"`
+	//新增字段
+	UseBalancePayment bool           `json:"use_balance_payment" gorm:"comment:是否用余额结算"`
+	CreatedAt         time.Time      `json:"created_at"`
+	UpdatedAt         time.Time      `json:"updated_at"`
+	DeletedAt         gorm.DeletedAt `json:"-" gorm:"index"`
 
 	// 关联关系
 	Reporter    *InternalMember   `json:"reporter,omitempty" gorm:"foreignKey:ReporterID"`
@@ -111,8 +113,8 @@ func (OrderWorkflow) TableName() string {
 // OrderPaymentInfo 订单支付信息表
 type OrderPaymentInfo struct {
 	PaymentID     uint       `json:"payment_id" gorm:"autoIncrement:false;column:payment_id"` // 移除主键，禁用自增
-	OrderID       uint       `json:"order_id" gorm:"primaryKey;not null;comment:订单ID"`        // 改为主键
-	TransactionID string     `json:"transaction_id" gorm:"type:text;comment:付款流水号"`           // 修复：从 payment_transaction_id 改为 transaction_id
+	OrderID       uint       `json:"order_id" gorm:"primaryKey;not null;comment:订单ID"`      // 改为主键
+	TransactionID string     `json:"transaction_id" gorm:"type:text;comment:付款流水号"`      // 修复：从 payment_transaction_id 改为 transaction_id
 	PaymentMethod string     `json:"payment_method" gorm:"size:50;comment:付款方式"`
 	PaymentTime   *time.Time `json:"payment_time" gorm:"comment:付款时间"`
 	PaymentAmount float64    `json:"payment_amount" gorm:"type:decimal(10,2);comment:付款金额"`
@@ -161,6 +163,7 @@ type OrderCreateRequest struct {
 	ServiceAdditionalInfo string    `json:"service_additional_info"`
 	InternalNotes         string    `json:"internal_notes"`
 	OrderNotes            string    `json:"order_notes"`
+	UseBalancePayment     bool      `json:"use_balance_payment"` // 是否使用余额支付
 	ExclusiveDiscount     bool      `json:"exclusive_discount"`
 }
 
