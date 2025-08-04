@@ -225,16 +225,16 @@ func GetOrders(c *gin.Context) {
 	// 构建查询，如果是管理员，则查询所有订单，否则查询当前用户报单的订单
 	if isAdmin {
 		query = database.DB.Model(&models.PlaymateOrder{})
+		// 搜索条件
+		if reporterIDStr := c.Query("reporter_id"); reporterIDStr != "" {
+			if reporterID, err := strconv.ParseUint(reporterIDStr, 10, 32); err == nil {
+				query = query.Where("playmate_orders.reporter_id = ?", uint(reporterID))
+			}
+		}
 	} else {
 		query = database.DB.Model(&models.PlaymateOrder{}).Where("playmate_orders.reporter_id = ?", memberID)
 	}
 
-	// 搜索条件
-	if reporterIDStr := c.Query("reporter_id"); reporterIDStr != "" {
-		if reporterID, err := strconv.ParseUint(reporterIDStr, 10, 32); err == nil {
-			query = query.Where("playmate_orders.reporter_id = ?", uint(reporterID))
-		}
-	}
 	if customerIDStr := c.Query("customer_id"); customerIDStr != "" {
 		if customerID, err := strconv.ParseUint(customerIDStr, 10, 32); err == nil {
 			query = query.Where("playmate_orders.customer_id = ?", uint(customerID))
@@ -261,8 +261,6 @@ func GetOrders(c *gin.Context) {
 	var orders []models.PlaymateOrder
 	offset := (req.Page - 1) * req.PageSize
 	err := query.
-		Select("playmate_orders.*").
-		Joins("LEFT JOIN customers ON playmate_orders.customer_id = customers.customer_id").
 		Preload("Reporter").Preload("Customer").Preload("Category").
 		Preload("Pricing").Preload("Workflow").Preload("PaymentInfo").
 		Order("report_time DESC").Offset(offset).Limit(req.PageSize).Find(&orders).Error
@@ -271,6 +269,7 @@ func GetOrders(c *gin.Context) {
 		utils.Error(c, "查询失败")
 		return
 	}
+	fmt.Println(orders[0].Customer)
 
 	response := models.PageResponse{
 		List:     orders,
@@ -770,8 +769,6 @@ func GetPendingOrders(c *gin.Context) {
 	var orders []models.PlaymateOrder
 	offset := (req.Page - 1) * req.PageSize
 	err := query.
-		Select("playmate_orders.* ").
-		Joins("LEFT JOIN customers ON playmate_orders.customer_id = customers.customer_id").
 		Preload("Reporter").Preload("Customer").Preload("Category").
 		Preload("Pricing").Preload("Workflow").Preload("PaymentInfo").
 		Order("report_time DESC").Offset(offset).Limit(req.PageSize).Find(&orders).Error
@@ -829,8 +826,6 @@ func GetApprovalOrders(c *gin.Context) {
 	var orders []models.PlaymateOrder
 	offset := (req.Page - 1) * req.PageSize
 	err := query.
-		Select("playmate_orders.*").
-		Joins("LEFT JOIN customers ON playmate_orders.customer_id = customers.customer_id").
 		Preload("Reporter").Preload("Customer").Preload("Category").
 		Preload("Pricing").Preload("Workflow").Preload("PaymentInfo").
 		Order("report_time DESC").Offset(offset).Limit(req.PageSize).Find(&orders).Error
@@ -1780,8 +1775,6 @@ func GetCustomerOrders(c *gin.Context) {
 	var orders []models.PlaymateOrder
 	offset := (req.Page - 1) * req.PageSize
 	err := query.
-		Select("playmate_orders.*").
-		Joins("LEFT JOIN customers ON playmate_orders.customer_id = customers.customer_id").
 		Preload("Reporter").Preload("Customer").Preload("Category").
 		Preload("Pricing").Preload("Workflow").Preload("PaymentInfo").
 		Order("report_time DESC").Offset(offset).Limit(req.PageSize).Find(&orders).Error
