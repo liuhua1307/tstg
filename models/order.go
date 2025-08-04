@@ -51,7 +51,7 @@ type PlaymateOrder struct {
 
 	// 关联关系
 	Reporter    *InternalMember   `json:"reporter,omitempty" gorm:"foreignKey:ReporterID"`
-	Customer    *Customer         `json:"customer,omitempty" gorm:"foreignKey:CustomerID"`
+	Customer    *Customer         `json:"customer,omitempty" gorm:"foreignKey:CustomerID;references:CustomerID"`
 	Category    *OrderCategory    `json:"category,omitempty" gorm:"foreignKey:OrderCategoryID"`
 	Pricing     *OrderPricing     `json:"pricing,omitempty" gorm:"foreignKey:OrderID"`
 	Workflow    *OrderWorkflow    `json:"workflow,omitempty" gorm:"foreignKey:OrderID"`
