@@ -261,7 +261,7 @@ func GetOrders(c *gin.Context) {
 	var orders []models.PlaymateOrder
 	offset := (req.Page - 1) * req.PageSize
 	err := query.
-		Preload("Reporter").Preload("Customer").Preload("Category").
+		Preload("Reporter.FinancialSettings").Preload("Customer").Preload("Category").
 		Preload("Pricing").Preload("Workflow").Preload("PaymentInfo").
 		Order("report_time DESC").Offset(offset).Limit(req.PageSize).Find(&orders).Error
 
@@ -269,7 +269,6 @@ func GetOrders(c *gin.Context) {
 		utils.Error(c, "查询失败")
 		return
 	}
-	fmt.Println(orders[0].Customer)
 
 	response := models.PageResponse{
 		List:     orders,
@@ -396,7 +395,7 @@ func CreateOrder(c *gin.Context) {
 	tx.Commit()
 
 	// 重新查询完整信息
-	database.DB.Preload("Reporter").Preload("Customer").Preload("Category").
+	database.DB.Preload("Reporter.FinancialSettings").Preload("Customer").Preload("Category").
 		Preload("Pricing").Preload("Workflow").Preload("PaymentInfo").
 		First(&order, order.OrderID)
 
@@ -488,7 +487,7 @@ func UpdateOrder(c *gin.Context) {
 	tx.Commit()
 
 	// 重新查询完整信息
-	database.DB.Preload("Reporter").Preload("Customer").Preload("Category").
+	database.DB.Preload("Reporter.FinancialSettings").Preload("Customer").Preload("Category").
 		Preload("Pricing").Preload("Workflow").Preload("PaymentInfo").
 		First(&order, order.OrderID)
 
@@ -514,7 +513,7 @@ func GetOrderByID(c *gin.Context) {
 
 	var order models.PlaymateOrder
 	if err := database.DB.
-		Preload("Reporter").Preload("Customer").Preload("Category").
+		Preload("Reporter.FinancialSettings").Preload("Customer").Preload("Category").
 		Preload("Pricing").Preload("Workflow").Preload("PaymentInfo").Preload("Images").
 		First(&order, uint(id)).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
@@ -769,7 +768,7 @@ func GetPendingOrders(c *gin.Context) {
 	var orders []models.PlaymateOrder
 	offset := (req.Page - 1) * req.PageSize
 	err := query.
-		Preload("Reporter").Preload("Customer").Preload("Category").
+		Preload("Reporter.FinancialSettings").Preload("Customer").Preload("Category").
 		Preload("Pricing").Preload("Workflow").Preload("PaymentInfo").
 		Order("report_time DESC").Offset(offset).Limit(req.PageSize).Find(&orders).Error
 
@@ -826,7 +825,7 @@ func GetApprovalOrders(c *gin.Context) {
 	var orders []models.PlaymateOrder
 	offset := (req.Page - 1) * req.PageSize
 	err := query.
-		Preload("Reporter").Preload("Customer").Preload("Category").
+		Preload("Reporter.FinancialSettings").Preload("Customer").Preload("Category").
 		Preload("Pricing").Preload("Workflow").Preload("PaymentInfo").
 		Order("report_time DESC").Offset(offset).Limit(req.PageSize).Find(&orders).Error
 
@@ -1610,7 +1609,7 @@ func BatchExport(c *gin.Context) {
 
 	var orders []models.PlaymateOrder
 	err := database.DB.Where("order_id IN ?", orderIDs).
-		Preload("Reporter").Preload("Customer").Preload("Category").
+		Preload("Reporter.FinancialSettings").Preload("Customer").Preload("Category").
 		Preload("Pricing").Preload("Workflow").Preload("PaymentInfo").
 		Find(&orders).Error
 
@@ -1775,7 +1774,7 @@ func GetCustomerOrders(c *gin.Context) {
 	var orders []models.PlaymateOrder
 	offset := (req.Page - 1) * req.PageSize
 	err := query.
-		Preload("Reporter").Preload("Customer").Preload("Category").
+		Preload("Reporter.FinancialSettings").Preload("Customer").Preload("Category").
 		Preload("Pricing").Preload("Workflow").Preload("PaymentInfo").
 		Order("report_time DESC").Offset(offset).Limit(req.PageSize).Find(&orders).Error
 
