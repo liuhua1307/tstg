@@ -141,10 +141,9 @@ func CreateMember(c *gin.Context) {
 
 	// 创建权限设置
 	permissions := models.MemberPermissions{
-		MemberID:       member.MemberID,
-		IsAuditor:      req.IsAuditor,
-		CanReport:      req.CanReport,
-		CanAcceptOrder: req.CanAcceptOrder,
+		MemberID:  member.MemberID,
+		IsAuditor: req.IsAuditor,
+		CanReport: req.CanReport,
 	}
 	if err := tx.Create(&permissions).Error; err != nil {
 		tx.Rollback()
@@ -258,10 +257,9 @@ func UpdateMember(c *gin.Context) {
 		if err == gorm.ErrRecordNotFound {
 			// 如果不存在则创建
 			permissions = models.MemberPermissions{
-				MemberID:       member.MemberID,
-				IsAuditor:      req.IsAuditor,
-				CanReport:      req.CanReport,
-				CanAcceptOrder: req.CanAcceptOrder,
+				MemberID:  member.MemberID,
+				IsAuditor: req.IsAuditor,
+				CanReport: req.CanReport,
 			}
 			tx.Create(&permissions)
 		} else {
@@ -272,7 +270,6 @@ func UpdateMember(c *gin.Context) {
 	} else {
 		permissions.IsAuditor = req.IsAuditor
 		permissions.CanReport = req.CanReport
-		permissions.CanAcceptOrder = req.CanAcceptOrder
 		tx.Save(&permissions)
 	}
 

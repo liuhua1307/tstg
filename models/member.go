@@ -42,7 +42,6 @@ type MemberPermissions struct {
 	MemberID       uint      `json:"member_id" gorm:"uniqueIndex;not null;comment:成员ID"`
 	IsAuditor      bool      `json:"is_auditor" gorm:"default:false;comment:是否可审核"`
 	CanReport      bool      `json:"can_report" gorm:"default:true;comment:是否可报单"`
-	CanAcceptOrder bool      `json:"can_accept_order" gorm:"default:true;comment:是否可接单"`
 	CreatedAt      time.Time `json:"created_at"`
 	UpdatedAt      time.Time `json:"updated_at"`
 
@@ -132,7 +131,6 @@ type MemberCreateRequest struct {
 	Notes          string  `json:"notes"`
 	IsAuditor      bool    `json:"is_auditor"`
 	CanReport      bool    `json:"can_report"`
-	CanAcceptOrder bool    `json:"can_accept_order"` // 修复：与权限模型字段一致
 	CommissionRate float64 `json:"commission_rate"`  // 修复：与财务设置模型字段一致
 	CreatorID      *uint   `json:"creator_id"`
 	AssigneeID     *uint   `json:"assignee_id"`
