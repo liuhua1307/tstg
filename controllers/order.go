@@ -346,21 +346,13 @@ func CreateOrder(c *gin.Context) {
 	// 计算价格
 	totalPrice := req.UnitPrice * req.DurationHours
 	finalPrice := totalPrice
-	discountAmount := 0.0
-	if req.ExclusiveDiscount {
-		// 这里可以根据客户的专属折扣计算
-		discountAmount = totalPrice * 0.1 // 示例：10%折扣
-		finalPrice = totalPrice - discountAmount
-	}
 
 	// 创建价格信息
 	pricing := models.OrderPricing{
-		OrderID:           order.OrderID,
-		UnitPrice:         req.UnitPrice,
-		TotalPrice:        totalPrice,
-		DiscountAmount:    discountAmount,
-		FinalPrice:        finalPrice,
-		ExclusiveDiscount: req.ExclusiveDiscount,
+		OrderID:    order.OrderID,
+		UnitPrice:  req.UnitPrice,
+		TotalPrice: totalPrice,
+		FinalPrice: finalPrice,
 	}
 	if err := tx.Create(&pricing).Error; err != nil {
 		tx.Rollback()
@@ -469,17 +461,10 @@ func UpdateOrder(c *gin.Context) {
 	if err := tx.Where("order_id = ?", order.OrderID).First(&pricing).Error; err == nil {
 		totalPrice := req.UnitPrice * req.DurationHours
 		finalPrice := totalPrice
-		discountAmount := 0.0
-		if req.ExclusiveDiscount {
-			discountAmount = totalPrice * 0.1
-			finalPrice = totalPrice - discountAmount
-		}
 
 		pricing.UnitPrice = req.UnitPrice
 		pricing.TotalPrice = totalPrice
-		pricing.DiscountAmount = discountAmount
 		pricing.FinalPrice = finalPrice
-		pricing.ExclusiveDiscount = req.ExclusiveDiscount
 		tx.Save(&pricing)
 	}
 
@@ -984,38 +969,19 @@ func ApproveOrder(c *gin.Context) {
 		}
 	}
 
-	// 获取客户偏好设置（包括折扣信息）
-	var customerPreferences models.CustomerPreferences
-	if err := tx.Where("customer_id = ?", order.CustomerID).First(&customerPreferences).Error; err != nil {
-		tx.Rollback()
-		utils.Error(c, "获取客户偏好设置失败")
-		return
-	}
-
-	// 计算订单金额和折扣
+	// 计算订单金额
 	originalAmount := order.Pricing.FinalPrice
-	discountRate := 0.0
 	actualAmount := originalAmount
 
-	// 直接使用客户设置的折扣比例（0-100）计算实际扣款金额
-	if customerPreferences.ExclusiveDiscountRatio >= 0 && customerPreferences.ExclusiveDiscountRatio <= 100 {
-		discountRate = float64(customerPreferences.ExclusiveDiscountRatio) / 100.0
-		actualAmount = originalAmount * (1 - discountRate)
-	} else {
-		// 如果折扣比例无效，按原价处理
-		discountRate = 0.0
-		actualAmount = originalAmount
-	}
-
-	// 检查余额是否足够（使用折扣后的金额）
+	// 检查余额是否足够
 	if customerFinancial.CurrentBalance < actualAmount {
 		tx.Rollback()
-		utils.Error(c, fmt.Sprintf("客户余额不足，当前余额：%.2f，订单原价：%.2f，折扣后金额：%.2f（%.0f%%折扣）",
-			customerFinancial.CurrentBalance, originalAmount, actualAmount, discountRate*100))
+		utils.Error(c, fmt.Sprintf("客户余额不足，当前余额：%.2f，订单金额：%.2f",
+			customerFinancial.CurrentBalance, actualAmount))
 		return
 	}
 
-	// 扣除客户余额（使用折扣后的金额）
+	// 扣除客户余额
 	customerFinancial.CurrentBalance -= actualAmount
 	customerFinancial.TotalConsumption += actualAmount
 	if err := tx.Save(&customerFinancial).Error; err != nil {
@@ -1047,8 +1013,8 @@ func ApproveOrder(c *gin.Context) {
 
 	response := models.StandardResponse{
 		Success: true,
-		Message: fmt.Sprintf("订单审批成功！原价：%.2f元，折扣：%.0f%%，实际扣款：%.2f元",
-			originalAmount, discountRate*100, actualAmount),
+		Message: fmt.Sprintf("订单审批成功！扣款金额：%.2f元",
+			actualAmount),
 	}
 
 	utils.SuccessWithMessage(c, "订单审批成功", response)

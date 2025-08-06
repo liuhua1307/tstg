@@ -101,11 +101,9 @@ func CustomerRegister(c *gin.Context) {
 
 	// 创建偏好设置（默认设置）
 	preferences := models.CustomerPreferences{
-		CustomerID:             customer.CustomerID,
-		ExclusiveDiscountType:  "无折扣",
-		ExclusiveDiscountRatio: 0,
-		PlatformBoss:           "",
-		ExclusiveCS:            "",
+		CustomerID:   customer.CustomerID,
+		PlatformBoss: "",
+		ExclusiveCS:  "",
 	}
 	if err := tx.Create(&preferences).Error; err != nil {
 		tx.Rollback()

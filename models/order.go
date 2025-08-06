@@ -70,9 +70,7 @@ type OrderPricing struct {
 	OrderID           uint      `json:"order_id" gorm:"uniqueIndex;not null;comment:订单ID"`
 	UnitPrice         float64   `json:"unit_price" gorm:"type:decimal(10,2);not null;comment:单价（元/小时）"`
 	TotalPrice        float64   `json:"total_price" gorm:"type:decimal(10,2);not null;comment:订单总价"`
-	DiscountAmount    float64   `json:"discount_amount" gorm:"type:decimal(10,2);default:0.00;comment:折扣总价"`
 	FinalPrice        float64   `json:"final_price" gorm:"type:decimal(10,2);not null;comment:最终结算价格"`
-	ExclusiveDiscount bool      `json:"exclusive_discount" gorm:"default:false;comment:是否专属折扣"`
 	CreatedAt         time.Time `json:"created_at"`
 	UpdatedAt         time.Time `json:"updated_at"`
 
@@ -158,7 +156,6 @@ type OrderCreateRequest struct {
 	InternalNotes         string    `json:"internal_notes"`
 	OrderNotes            string    `json:"order_notes"`
 	UseBalancePayment     bool      `json:"use_balance_payment"` // 是否使用余额支付
-	ExclusiveDiscount     bool      `json:"exclusive_discount"`
 }
 
 type OrderUpdateStatusRequest struct {

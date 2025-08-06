@@ -65,8 +65,6 @@ func (CustomerFinancialInfo) TableName() string {
 type CustomerPreferences struct {
 	PreferenceID           uint      `json:"preference_id" gorm:"primaryKey;column:preference_id"`
 	CustomerID             uint      `json:"customer_id" gorm:"uniqueIndex;not null;comment:客户ID"`
-	ExclusiveDiscountType  string    `json:"exclusive_discount_type" gorm:"size:50;default:'无折扣';comment:专属折扣类型"`
-	ExclusiveDiscountRatio int       `json:"exclusive_discount_ratio" gorm:"type:int;default:0;comment:专属折扣比例(0-100，表示折扣百分比)"`
 	PlatformBoss           string    `json:"platform_boss" gorm:"size:100;comment:所属平台老板"`
 	ExclusiveCS            string    `json:"exclusive_cs" gorm:"size:100;comment:专属服务客服"`
 	CreatedAt              time.Time `json:"created_at"`
@@ -117,8 +115,6 @@ type CustomerCreateRequest struct {
 	AdditionalInfo3        string     `json:"additional_info3"`
 	Notes                  string     `json:"notes"`
 	InitialRealCharge      float64    `json:"initial_real_charge"`
-	ExclusiveDiscountType  string     `json:"exclusive_discount_type"`
-	ExclusiveDiscountRatio int        `json:"exclusive_discount_ratio"`
 	PlatformBoss           string     `json:"platform_boss"`
 	ExclusiveCS            string     `json:"exclusive_cs"`
 }

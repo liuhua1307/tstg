@@ -170,11 +170,9 @@ func CreateCustomer(c *gin.Context) {
 
 	// 创建偏好设置
 	preferences := models.CustomerPreferences{
-		CustomerID:             customer.CustomerID,
-		ExclusiveDiscountType:  req.ExclusiveDiscountType,
-		ExclusiveDiscountRatio: req.ExclusiveDiscountRatio,
-		PlatformBoss:           req.PlatformBoss,
-		ExclusiveCS:            req.ExclusiveCS,
+		CustomerID:   customer.CustomerID,
+		PlatformBoss: req.PlatformBoss,
+		ExclusiveCS:  req.ExclusiveCS,
 	}
 	if err := tx.Create(&preferences).Error; err != nil {
 		tx.Rollback()
@@ -251,11 +249,9 @@ func UpdateCustomer(c *gin.Context) {
 	if err := tx.Where("customer_id = ?", customer.CustomerID).First(&preferences).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
 			preferences = models.CustomerPreferences{
-				CustomerID:             customer.CustomerID,
-				ExclusiveDiscountType:  req.ExclusiveDiscountType,
-				ExclusiveDiscountRatio: req.ExclusiveDiscountRatio,
-				PlatformBoss:           req.PlatformBoss,
-				ExclusiveCS:            req.ExclusiveCS,
+				CustomerID:   customer.CustomerID,
+				PlatformBoss: req.PlatformBoss,
+				ExclusiveCS:  req.ExclusiveCS,
 			}
 			tx.Create(&preferences)
 		} else {
@@ -264,8 +260,6 @@ func UpdateCustomer(c *gin.Context) {
 			return
 		}
 	} else {
-		preferences.ExclusiveDiscountType = req.ExclusiveDiscountType
-		preferences.ExclusiveDiscountRatio = req.ExclusiveDiscountRatio
 		preferences.PlatformBoss = req.PlatformBoss
 		preferences.ExclusiveCS = req.ExclusiveCS
 		tx.Save(&preferences)
